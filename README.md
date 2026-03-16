@@ -7,10 +7,10 @@ Bu proje, kapsamlı bir dijital oyun dağıtım platformunun temel sistem mimari
 
 Sistem yapısı birbirine entegre çalışan 5 ana modül üzerinden kurgulanmıştır:
 
-* **Kullanıcı Kaydı Modülü:** Kullanıcı hesaplarının oluşturulması, güvenli giriş işlemleri ve profil yönetimi.
-* **Mağaza ve Katalog Modülü:** Oyunların listelenmesi, filtrelenmesi ve satın alma operasyonları.
-* **Kütüphane Modülü:** Kullanıcıların sahip olduğu oyunların tutulması, indirme ve başlatma durumlarının yönetimi.
-* **Arkadaşlık ve Sosyal Etkileşim Modülü:** Kullanıcılar arası iletişim, arkadaş ekleme ve çevrimiçi durum takibi.
+* **Kullanıcı Modülü:** Kullanıcı hesaplarının oluşturulması, giriş işlemleri (publisher/user).
+* **Mağaza ve Katalog Modülü:** Oyunların listelenmesi, filtrelenmesi(?) ve satın alma operasyonları.
+* **Kütüphane Modülü:** Kullanıcıların sahip olduğu oyunların tutulması.
+* **Arkadaşlık ve Sosyal Etkileşim Modülü:** Kullanıcılar arası arkadaş ekleme.
 * **Oyun Detay ve Bilgilendirme Modülü:** Oyunlara ait sistem gereksinimleri, kullanıcı incelemeleri ve detaylı açıklamalar.
 * **GUI (Graphical User Interface):** Sistemdeki tüm arka plan işlemlerinin kullanıcıya görsel olarak sunulduğu ana katman. Ekran tasarımları, sayfa geçişleri ve kullanıcı etkileşimlerinin yönetimi.
 
