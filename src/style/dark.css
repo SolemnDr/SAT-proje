@@ -1,0 +1,67 @@
+.root-pane {
+    -fx-background-color: #1a1a2e;
+}
+
+.logo-title {
+    -fx-text-fill: #e0e0ff;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.logo-sub {
+    -fx-text-fill: #6060a0;
+    -fx-font-size: 12px;
+}
+
+.field-label {
+    -fx-text-fill: #7070a0;
+    -fx-font-size: 11px;
+}
+
+.field-input {
+    -fx-background-color: #12122a;
+    -fx-text-fill: #c0c0f0;
+    -fx-prompt-text-fill: #4a4a7a;
+    -fx-border-color: #2a2a5a;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14;
+}
+
+.field-input:focused {
+    -fx-border-color: #4a4acc;
+}
+
+.btn-primary {
+    -fx-background-color: #4a4acc;
+    -fx-text-fill: #e0e0ff;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8;
+    -fx-padding: 11 0;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #5a5add;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8080c0;
+    -fx-font-size: 13px;
+    -fx-border-color: #3a3a6a;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 0;
+    -fx-cursor: hand;
+}
+
+.divider-label {
+    -fx-text-fill: #4a4a7a;
+    -fx-font-size: 11px;
+}
+
+.error-label {
+    -fx-text-fill: #ff6060;
+    -fx-font-size: 12px;
+}
