@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="500" prefWidth="360" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.LoginController">
+<VBox alignment="CENTER" prefHeight="560" prefWidth="960" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.LoginController">
 
     <!-- Logo Alan -->
     <VBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 24 0;">
@@ -55,11 +55,14 @@
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
       </Button>
 
         <Label alignment="CENTER" maxWidth="Infinity" styleClass="divider-label" text="Hesabın yok mu?" />
 
-        <Button alignment="TOP_CENTER" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Hesap Oluştur">
+        <Button alignment="TOP_CENTER" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-secondary" text="Hesap Oluştur">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>

@@ -4,14 +4,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="560" prefWidth="360" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.RegisterController">
+<VBox alignment="CENTER" prefHeight="560" prefWidth="960" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.RegisterController">
 
     <VBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 24 0;">
-        <Label styleClass="logo-title" text="GameStore" />
+        <Label styleClass="logo-title" text="GameStore">
+         <VBox.margin>
+            <Insets top="40.0" />
+         </VBox.margin></Label>
         <Label styleClass="logo-sub" text="Yeni Hesap Oluştur" />
+      <VBox.margin>
+         <Insets />
+      </VBox.margin>
     </VBox>
 
-    <VBox spacing="14" style="-fx-padding: 0 36 0 36;">
+    <VBox alignment="CENTER" spacing="14" style="-fx-padding: 0 36 0 36;">
 
         <VBox spacing="5">
             <Label styleClass="field-label" text="KULLANICI ADI" />
@@ -30,10 +36,8 @@
 
         <VBox spacing="5">
             <Label styleClass="field-label" text="HESAP TÜRÜ" />
-            <ComboBox fx:id="roleComboBox" maxWidth="Infinity" styleClass="field-input" />
+            <ComboBox fx:id="roleComboBox" maxWidth="Infinity" style="-fx-background-color: #c0c0f0;" styleClass="field-input" />
         </VBox>
-
-        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" />
 
         <Button maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Hesap Oluştur">
          <VBox.margin>
@@ -44,5 +48,16 @@
 
         <Button maxWidth="Infinity" onAction="#handleLogin" styleClass="btn-primary" text="Giriş Yap" />
 
+        <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true">
+         <VBox.margin>
+            <Insets bottom="-20.0" top="20.0" />
+         </VBox.margin></Label>
+      <VBox.margin>
+         <Insets />
+      </VBox.margin>
+
     </VBox>
+   <padding>
+      <Insets bottom="50.0" />
+   </padding>
 </VBox>
