@@ -46,11 +46,9 @@
 }
 
 .btn-secondary {
-    -fx-background-color: transparent;
-    -fx-text-fill: #8080c0;
-    -fx-font-size: 13px;
-    -fx-border-color: #3a3a6a;
-    -fx-border-radius: 8;
+    -fx-background-color: #4a4acc;
+    -fx-text-fill: #e0e0ff;
+    -fx-font-size: 14px;
     -fx-background-radius: 8;
     -fx-padding: 10 0;
     -fx-cursor: hand;
