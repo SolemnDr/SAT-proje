@@ -1,40 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER" prefHeight="500" prefWidth="360" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="gui.LoginController">
+<VBox alignment="CENTER" prefHeight="500" prefWidth="360" spacing="0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.LoginController">
 
     <!-- Logo Alan -->
     <VBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 24 0;">
         <Label styleClass="logo-title" text="GameStore" />
-        <Label styleClass="logo-sub" text="Lütfen giriş yapınız" textAlignment="CENTER" />
+        <Label styleClass="logo-sub" text="Lütfen giriş yapınız" textAlignment="CENTER">
+         <VBox.margin>
+            <Insets left="3.0" />
+         </VBox.margin></Label>
     </VBox>
 
     <!-- Form -->
     <VBox spacing="14" style="-fx-padding: 0 36 0 36;">
 
         <VBox spacing="5">
-            <Label styleClass="field-label" text="KULLANICI ADI" />
+            <Label styleClass="field-label" text="KULLANICI ADI">
+            <VBox.margin>
+               <Insets left="2.0" />
+            </VBox.margin></Label>
             <TextField fx:id="usernameField" promptText="Kullanıcı adınızı giriniz" styleClass="field-input">
             <cursor>
                <Cursor fx:constant="TEXT" />
-            </cursor></TextField>
+            </cursor>
+            <VBox.margin>
+               <Insets />
+            </VBox.margin></TextField>
         </VBox>
 
         <VBox spacing="5">
-            <Label styleClass="field-label" text="ŞİFRE" />
+            <Label styleClass="field-label" text="ŞİFRE">
+            <VBox.margin>
+               <Insets left="2.0" />
+            </VBox.margin></Label>
         </VBox>
          <PasswordField fx:id="passwordField" promptText="Şifrenizi giriniz" styleClass="field-input">
          <cursor>
             <Cursor fx:constant="TEXT" />
          </cursor>
+         <VBox.margin>
+            <Insets top="-10.0" />
+         </VBox.margin>
       </PasswordField>
 
         <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true" />
@@ -47,16 +59,19 @@
 
         <Label alignment="CENTER" maxWidth="Infinity" styleClass="divider-label" text="Hesabın yok mu?" />
 
-        <Button maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-secondary" text="Kayıt Ol" textFill="#c600cd">
+        <Button alignment="TOP_CENTER" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Kayıt Ol">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
-         <font>
-            <Font size="26.0" />
-         </font>
          <opaqueInsets>
             <Insets />
-         </opaqueInsets></Button>
+         </opaqueInsets>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <font>
+            <Font size="13.0" />
+         </font></Button>
 
     </VBox>
    <opaqueInsets>

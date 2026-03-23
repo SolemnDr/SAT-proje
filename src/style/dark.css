@@ -44,7 +44,6 @@
 .btn-primary:hover {
     -fx-background-color: #5a5add;
 }
-
 .btn-secondary {
     -fx-background-color: #4a4acc;
     -fx-text-fill: #e0e0ff;
@@ -53,6 +52,11 @@
     -fx-padding: 11 0;
     -fx-cursor: hand;
 }
+
+.btn-secondary:hover {
+    -fx-background-color: #5a5add;
+}
+
 
 .divider-label {
     -fx-text-fill: #4a4a7a;
