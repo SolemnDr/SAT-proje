@@ -10,16 +10,17 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/fxml/login.fxml")
+                MainApp.class.getResource("login.fxml")
         );
+
+        if (loader.getLocation() == null) {
+            return;
+        }
+
         Scene scene = new Scene(loader.load());
         stage.setTitle("GameStore");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
