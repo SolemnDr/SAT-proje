@@ -11,7 +11,7 @@
     <!-- Logo Alan -->
     <VBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 24 0;">
         <Label styleClass="logo-title" text="GameStore" />
-        <Label styleClass="logo-sub" text="Lütfen giriş yapınız" textAlignment="CENTER">
+        <Label styleClass="logo-sub" text="Lütfen Giriş Yapınız" textAlignment="CENTER">
          <VBox.margin>
             <Insets left="3.0" />
          </VBox.margin></Label>
@@ -59,7 +59,7 @@
 
         <Label alignment="CENTER" maxWidth="Infinity" styleClass="divider-label" text="Hesabın yok mu?" />
 
-        <Button alignment="TOP_CENTER" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Kayıt Ol">
+        <Button alignment="TOP_CENTER" maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Hesap Oluştur">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
