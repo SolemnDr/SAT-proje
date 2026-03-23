@@ -14,7 +14,7 @@
 }
 
 .field-label {
-    -fx-text-fill: #7070a0;
+    -fx-text-fill: #c0c0f0;
     -fx-font-size: 11px;
 }
 
@@ -30,6 +30,8 @@
 
 .field-input:focused {
     -fx-border-color: #4a4acc;
+    -fx-text-fill: #c0c0f0;
+    -fx-prompt-text-fill: #4a4a7a;
 }
 
 .btn-primary {
@@ -59,7 +61,7 @@
 
 
 .divider-label {
-    -fx-text-fill: #4a4a7a;
+    -fx-text-fill: #c0c0f0;
     -fx-font-size: 11px;
 }
 

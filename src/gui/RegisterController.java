@@ -39,7 +39,7 @@ public class RegisterController {
             return;
         }
 
-        UserRole role = roleStr.equals("Yayıncı") ? UserRole.PUBLISHER : UserRole.USER;
+        UserRole role = roleStr.equals("Geliştirici") ? UserRole.PUBLISHER : UserRole.USER;
 
         AuthService.AuthResult result = authService.register(username, email, password, role);
 
@@ -59,7 +59,7 @@ public class RegisterController {
     private void goToLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/login.fxml")
+                    getClass().getResource("login.fxml")
             );
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));

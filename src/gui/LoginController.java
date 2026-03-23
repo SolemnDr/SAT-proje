@@ -42,7 +42,7 @@ public class LoginController {
     private void handleRegister() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/register.fxml")
+                    getClass().getResource("register.fxml")
             );
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));
