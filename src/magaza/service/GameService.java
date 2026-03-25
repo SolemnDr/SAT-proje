@@ -40,15 +40,26 @@ public class GameService {
         return total;
     }
 
-    // Sepeti satın al
-    public void purchaseCart(int userId) throws Exception {
+    // Sepeti satın al (Kredi Kartı Doğrulamalı)
+    public void purchaseCart(int userId, String cardNumber) throws Exception {
         List<Integer> ids = cartDAO.getCartGameIds(userId);
         if (ids.isEmpty()) {
             throw new Exception("Sepet boş!");
         }
+
+        // --- ÖDEME KONTROL SİSTEMİ ---
+        String cardBrand = util.CreditCardValidator.validateAndGetBrand(cardNumber);
+        double totalAmount = getCartTotal(userId);
+        // Sunumda konsola basılacak havalı log mesajı:
+        System.out.println("Ödeme Onaylandı! Çekilen Tutar: " + totalAmount + " TL. Kullanılan Kart: " + cardBrand);
+        // -----------------------------
+
+        // Ödeme başarılıysa oyunları hesaba ekle
         for (int gameId : ids) {
             purchaseGame(userId, gameId);
         }
+
+        // Sepeti boşalt
         cartDAO.clear(userId);
     }
 
