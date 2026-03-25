@@ -23,3 +23,8 @@
 hs_err_pid*
 replay_pid*
 /oyun-platformu/oyun-platformu.iml
+
+.idea/
+*.iml
+out/
+gamestore.db
