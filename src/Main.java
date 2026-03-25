@@ -14,5 +14,15 @@ public class Main {
         for (Game g : games) {
             System.out.println(g.getName() + " - " + g.getRating() + " - " + g.getGenres());
         }
+        /*
+        try {
+            // Veritabanını 1000 oyunla dolduracak sihirli komut
+            util.IgdbService.seedStoreDatabase();
+
+        } catch (Exception e) {
+            System.out.println("Bir hata oluştu: " + e.getMessage());
+            e.printStackTrace();
+        }                                           Oyun çekme kodu daha bitmedi.
+         */
     }
 }
