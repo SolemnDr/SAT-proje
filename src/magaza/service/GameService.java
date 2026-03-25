@@ -30,20 +30,6 @@ public class GameService {
         cartDAO.remove(userId, gameId);
     }
 
-    // Sepeti getir
-    public List<Game> getCart(int userId) throws Exception {
-        List<Integer> ids = cartDAO.getCartGameIds(userId);
-        List<Game> games = new ArrayList<>();
-        for (int id : ids) {
-            gameDAO.findAll()
-                    .stream()
-                    .filter(g -> g.getId() == id)
-                    .findFirst()
-                    .ifPresent(games::add);
-        }
-        return games;
-    }
-
     // Sepetteki toplam fiyat
     public double getCartTotal(int userId) throws Exception {
         List<Game> games = getCart(userId);
@@ -92,35 +78,6 @@ public class GameService {
         gameDAO.applyDiscount(gameId, discountPercent);
     }
 
-    // Satın alma güncelle (satış sayısını artır)
-    public void purchaseGame(int userId, int gameId) throws Exception {
-        if (purchaseDAO.hasPurchased(userId, gameId)) {
-            throw new Exception("Bu oyun zaten satın alınmış!");
-        }
-        Game game = gameDAO.findAll()
-                .stream()
-                .filter(g -> g.getId() == gameId)
-                .findFirst()
-                .orElseThrow(() -> new Exception("Oyun bulunamadı"));
-
-        double finalPrice = getDiscountedPrice(game);
-        purchaseDAO.save(userId, gameId, finalPrice);
-        gameDAO.incrementSalesCount(gameId);
-    }
-
-    // Kullanıcının satın aldığı oyunları getir
-    public List<Game> getPurchasedGames(int userId) throws Exception {
-        List<Integer> ids = purchaseDAO.getPurchasedGameIds(userId);
-        List<Game> games = new ArrayList<>();
-        for (int id : ids) {
-            gameDAO.findAll()
-                    .stream()
-                    .filter(g -> g.getId() == id)
-                    .findFirst()
-                    .ifPresent(games::add);
-        }
-        return games;
-    }
 
     // Tüm oyunları getir
     public List<Game> getAllGames() throws Exception {
@@ -217,5 +174,42 @@ public class GameService {
         }
 
         return recommendations;
+    }
+    // Sepeti getir (Optimize Edildi - O(N) karmaşıklığı)
+    public List<Game> getCart(int userId) throws Exception {
+        List<Integer> ids = cartDAO.getCartGameIds(userId);
+        List<Game> games = new ArrayList<>();
+        for (int id : ids) {
+            Game g = gameDAO.findById(id); // Tüm tabloyu çekmek yerine sadece 1 oyunu çeker
+            if (g != null) games.add(g);
+        }
+        return games;
+    }
+
+    // Kullanıcının satın aldığı oyunları getir (Optimize Edildi)
+    public List<Game> getPurchasedGames(int userId) throws Exception {
+        List<Integer> ids = purchaseDAO.getPurchasedGameIds(userId);
+        List<Game> games = new ArrayList<>();
+        for (int id : ids) {
+            Game g = gameDAO.findById(id);
+            if (g != null) games.add(g);
+        }
+        return games;
+    }
+
+    // Satın alma güncelle (Satış sayısını artır - Optimize Edildi)
+    public void purchaseGame(int userId, int gameId) throws Exception {
+        if (purchaseDAO.hasPurchased(userId, gameId)) {
+            throw new Exception("Bu oyun zaten satın alınmış!");
+        }
+
+        Game game = gameDAO.findById(gameId); // Tüm tabloyu belleğe almaktan kurtulduk
+        if (game == null) {
+            throw new Exception("Oyun bulunamadı");
+        }
+
+        double finalPrice = getDiscountedPrice(game);
+        purchaseDAO.save(userId, gameId, finalPrice);
+        gameDAO.incrementSalesCount(gameId);
     }
 }

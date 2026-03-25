@@ -178,4 +178,15 @@ public class GameDAO {
         ps.setInt(1, gameId);
         ps.executeUpdate();
     }
+    // ID'ye göre tek bir oyun getir (Performans Optimizasyonu)
+    public Game findById(int id) throws SQLException {
+        String sql = "SELECT * FROM games WHERE id = ?";
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return mapRow(rs); // Bulursa nesneye çevir
+        }
+        return null; // Bulamazsa null dön
+    }
 }

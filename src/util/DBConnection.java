@@ -22,54 +22,55 @@ public class DBConnection {
         }
         return connection;
     }
-
     private static void createTables() throws SQLException {
-        String kullaniciSql = """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'USER'
-            )
-            """;
+        // Kullanıcılar Tablosu
+        String sqlUsers = """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'USER'
+                )
+                """;
+        // Oyunlar Tablosu
+        String sqlGames = """
+                CREATE TABLE IF NOT EXISTS games (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT UNIQUE NOT NULL,
+                    summary TEXT,
+                    cover_url TEXT,
+                    genres TEXT,
+                    rating REAL,
+                    release_date INTEGER,
+                    price REAL,
+                    publisher_id INTEGER,
+                    discount_percent REAL DEFAULT 0,
+                    sales_count INTEGER DEFAULT 0
+                )
+                """;
+        // Sepet Tablosu (Bir kullanıcı bir oyunu sepete 1 kez ekleyebilir)
+        String sqlCart = """
+                CREATE TABLE IF NOT EXISTS cart (
+                    user_id INTEGER,
+                    game_id INTEGER,
+                    PRIMARY KEY (user_id, game_id)
+                )
+                """;
+        // Satın Alımlar Tablosu
+        String sqlPurchases = """
+                CREATE TABLE IF NOT EXISTS purchases (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    game_id INTEGER,
+                    purchase_date INTEGER,
+                    price REAL
+                )
+                """;
 
-        String oyunSql = """
-        CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            summary TEXT,
-            cover_url TEXT,
-            genres TEXT,
-            rating REAL,
-            release_date INTEGER,
-            price REAL,
-            publisher_id INTEGER,
-            discount_percent REAL DEFAULT 0,
-            sales_count INTEGER DEFAULT 0
-        )
-        """;
-
-        String satinaalmaSql = """
-        CREATE TABLE IF NOT EXISTS purchases (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            game_id INTEGER NOT NULL,
-            purchase_date INTEGER NOT NULL,
-            price REAL NOT NULL
-        )
-        """;
-        String sepetSql = """
-        CREATE TABLE IF NOT EXISTS cart (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            game_id INTEGER NOT NULL
-        )
-        """;
-
-        connection.createStatement().execute(sepetSql);
-        connection.createStatement().execute(satinaalmaSql);
-        connection.createStatement().execute(kullaniciSql);
-        connection.createStatement().execute(oyunSql);
+        connection.createStatement().execute(sqlUsers);
+        connection.createStatement().execute(sqlGames);
+        connection.createStatement().execute(sqlCart);
+        connection.createStatement().execute(sqlPurchases);
     }
 }
