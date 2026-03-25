@@ -19,6 +19,22 @@ public class UserDAO {
         ps.executeUpdate();
     }
 
+    public boolean isUserExists(String username, String email) {
+        String query = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?";
+        try (Connection conn = DBConnection.get();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, email);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public Optional<User> findByUsername(String username) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ?";
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);

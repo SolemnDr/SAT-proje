@@ -7,6 +7,7 @@ import magaza.dao.PurchaseDAO;
 import java.util.ArrayList;
 import java.util.List;
 import magaza.dao.CartDAO;
+import java.sql.Connection;
 
 public class GameService {
 
@@ -40,7 +41,7 @@ public class GameService {
         return total;
     }
 
-    // Sepeti satın al (Kredi Kartı Doğrulamalı)
+    // Sepeti satın al (Kredi Kartı Doğrulamalı ve Transaction Korumalı)
     public void purchaseCart(int userId, String cardNumber) throws Exception {
         List<Integer> ids = cartDAO.getCartGameIds(userId);
         if (ids.isEmpty()) {
@@ -50,17 +51,35 @@ public class GameService {
         // --- ÖDEME KONTROL SİSTEMİ ---
         String cardBrand = util.CreditCardValidator.validateAndGetBrand(cardNumber);
         double totalAmount = getCartTotal(userId);
-        // Sunumda konsola basılacak havalı log mesajı:
         System.out.println("Ödeme Onaylandı! Çekilen Tutar: " + totalAmount + " TL. Kullanılan Kart: " + cardBrand);
         // -----------------------------
 
-        // Ödeme başarılıysa oyunları hesaba ekle
-        for (int gameId : ids) {
-            purchaseGame(userId, gameId);
-        }
+        // Veritabanı bağlantısını alıyoruz
+        Connection conn = util.DBConnection.get();
 
-        // Sepeti boşalt
-        cartDAO.clear(userId);
+        try {
+            // Otomatik kaydetmeyi (AutoCommit) kapatıp Transaction (İşlem) başlatıyoruz
+            conn.setAutoCommit(false);
+
+            // Ödeme başarılıysa oyunları hesaba ekle
+            for (int gameId : ids) {
+                purchaseGame(userId, gameId);
+            }
+
+            // Sepeti boşalt
+            cartDAO.clear(userId);
+
+            // Eğer buraya kadar kod hatasız geldiyse, tüm işlemleri kalıcı olarak veritabanına KAYDET
+            conn.commit();
+
+        } catch (Exception e) {
+            // Eğer döngüde veya silme işleminde bir hata çıkarsa, yapılan tüm SQL işlemlerini GERİ AL!
+            conn.rollback();
+            throw new Exception("Satın alma sırasında bir hata oluştu, işlem iptal edildi: " + e.getMessage());
+        } finally {
+            // İşimiz bitince veritabanı bağlantı ayarını normale döndür
+            conn.setAutoCommit(true);
+        }
     }
 
     // İndirimli fiyatı hesapla
@@ -222,5 +241,17 @@ public class GameService {
         double finalPrice = getDiscountedPrice(game);
         purchaseDAO.save(userId, gameId, finalPrice);
         gameDAO.incrementSalesCount(gameId);
+    }
+    // Sayfalama ile oyunları getir (Örn: page=1, pageSize=20)
+    public List<Game> getGamesByPage(int page, int pageSize) throws Exception {
+        if (page < 1) page = 1; // Sayfa 1'den küçük olamaz
+        int offset = (page - 1) * pageSize; // Hangi satırdan başlayacağını hesaplar
+        return gameDAO.findAllWithPagination(pageSize, offset);
+    }
+
+    // Gelişmiş Arama Servisi
+    // Kullanım örneği: advancedSearch("RPG", 150.0, "PRICE_ASC");
+    public List<Game> advancedSearch(String genre, Double maxPrice, String sortBy) throws Exception {
+        return gameDAO.searchGamesAdvanced(genre, maxPrice, sortBy);
     }
 }

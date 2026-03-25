@@ -41,6 +41,21 @@ public class GameDAO {
         return games;
     }
 
+    // Sayfalama (Pagination) destekli tüm oyunları getir
+    public List<Game> findAllWithPagination(int limit, int offset) throws SQLException {
+        List<Game> games = new ArrayList<>();
+        // Sadece belirtilen aralıktaki verileri çeker
+        String sql = "SELECT * FROM games LIMIT ? OFFSET ?";
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, limit);
+        ps.setInt(2, offset);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            games.add(mapRow(rs));
+        }
+        return games;
+    }
+
     // İsme göre ara
     public List<Game> findByName(String name) throws SQLException {
         List<Game> games = new ArrayList<>();
@@ -188,5 +203,45 @@ public class GameDAO {
             return mapRow(rs); // Bulursa nesneye çevir
         }
         return null; // Bulamazsa null dön
+    }
+
+    // Gelişmiş Çoklu Filtreleme (Dinamik SQL)
+    public List<Game> searchGamesAdvanced(String genre, Double maxPrice, String sortBy) throws SQLException {
+        List<Game> games = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM games WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        // Kategori filtresi eklendiyse
+        if (genre != null && !genre.trim().isEmpty()) {
+            sql.append(" AND genres LIKE ?");
+            params.add("%" + genre + "%");
+        }
+
+        // Maksimum fiyat filtresi eklendiyse
+        if (maxPrice != null) {
+            sql.append(" AND price <= ?");
+            params.add(maxPrice);
+        }
+
+        // Sıralama (Order) seçeneği eklendiyse
+        if ("PRICE_ASC".equals(sortBy)) {
+            sql.append(" ORDER BY price ASC");
+        } else if ("PRICE_DESC".equals(sortBy)) {
+            sql.append(" ORDER BY price DESC");
+        } else if ("RATING_DESC".equals(sortBy)) {
+            sql.append(" ORDER BY rating DESC");
+        }
+
+        // SQL'i hazırlayıp parametreleri güvenli (PreparedStatement) şekilde yerleştiriyoruz
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            games.add(mapRow(rs));
+        }
+        return games;
     }
 }

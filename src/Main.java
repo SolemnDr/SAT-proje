@@ -14,7 +14,7 @@ public class Main {
         for (Game g : games) {
             System.out.println(g.getName() + " - " + g.getRating() + " - " + g.getGenres());
         }
-        /*
+
         try {
             // Veritabanını 1000 oyunla dolduracak sihirli komut
             util.IgdbService.seedStoreDatabase();
@@ -22,7 +22,6 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Bir hata oluştu: " + e.getMessage());
             e.printStackTrace();
-        }                                           Oyun çekme kodu daha bitmedi.
-         */
+        }
     }
 }
