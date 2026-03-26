@@ -7,12 +7,12 @@ Bu proje, kapsamlı bir dijital oyun dağıtım platformunun temel sistem mimari
 
 Sistem yapısı birbirine entegre çalışan 5 ana modül üzerinden kurgulanmıştır:
 
-1. Kullanıcı kaydı Modülü: Kayıt, giriş, güvenlik yönetimi
+1. Kullanıcı kaydı Modülü: Kayıt, giriş, güvenlik yönetimi ✅
     1. Şifre kural kontrol var.
     2. Login ve kayıt olma.
     3. Hesap varlık kontrol. Aynı bilgilerle hesap oluşmasın dikkat.
     4. Şifreler güvenli saklanıyor.
-2. Mağaza ve Katalog Modülü: Oyunların kategorize edilmesi, arama/filtreleme yöntemleri
+2. Mağaza ve Katalog Modülü: Oyunların kategorize edilmesi, arama/filtreleme yöntemleri ✅
     1. Oyun listeleme, arama, filtreleme _olabilir_.
     2. İndirim, çok satanlar gibi filtreleme sistemleri
     3. Tavsiye sistemi _olabilir_.
