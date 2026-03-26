@@ -1,27 +1,23 @@
-import magaza.dao.GameDAO;
-import magaza.model.Game;
-import util.IgdbService;
-import java.util.List;
+import gui.MainApp;
+import javafx.application.Application;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        // Oyunları IGDB'den çek ve kaydet
-        IgdbService.searchAndSave("GTA");
+    public static void main(String[] args) {
 
-        // Veritabanından oku ve göster
-        GameDAO gameDAO = new GameDAO();
-        List<Game> games = gameDAO.findAll();
-        for (Game g : games) {
-            System.out.println(g.getName() + " - " + g.getRating() + " - " + g.getGenres());
-        }
-
+        // 1. VERİTABANI ARTIK 1000 OYUNLA DOLU!
+        // Her çalıştırdığımızda tekrar indirmesin diye burayı kapattık.
+        // Eğer veritabanı silinirse bu yorum satırlarını açıp bir kere çalıştırman yeterli.
+        /*
         try {
-            // Veritabanını 1000 oyunla dolduracak sihirli komut
             util.IgdbService.seedStoreDatabase();
-
         } catch (Exception e) {
-            System.out.println("Bir hata oluştu: " + e.getMessage());
             e.printStackTrace();
         }
+        */
+
+        // 2. JAVAFX ARAYÜZÜNÜ BAŞLATAN TRUVA ATI KODU
+        // Arayüzü doğrudan değil, bu sınıf üzerinden dolaylı yoldan başlatıyoruz (Hatayı atlatmak için)
+        System.out.println("GameStore Arayüzü Başlatılıyor...");
+        Application.launch(MainApp.class, args);
     }
 }
