@@ -1,4 +1,4 @@
-package kutuphane.service;
+package kutuphane.dao;
 
 import kutuphane.dao.LibraryDAO;
 import magaza.model.Game;

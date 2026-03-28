@@ -244,4 +244,28 @@ public class GameDAO {
         }
         return games;
     }
+    public List<Game> getRecommendationsForUser(int userId) throws SQLException {
+        List<Game> recommended = new ArrayList<>();
+
+        // Çok havalı bir İç İçe SQL (Subquery) yazıyoruz:
+        String sql = "SELECT DISTINCT g.* FROM games g " +
+                // Adamın sahip olduğu oyunlarla aynı kategorideki oyunları bul
+                "JOIN library l ON l.user_id = ? " +
+                "JOIN games ug ON l.game_id = ug.id " +
+                "WHERE g.genres LIKE '%' || ug.genres || '%' " +
+                // Adamın zaten satın aldığı oyunları önerme (Listeden çıkar)
+                "AND g.id NOT IN (SELECT game_id FROM library WHERE user_id = ?) " +
+                // En yüksek puanlıları en üste koy ve sadece 5 tane öner
+                "ORDER BY g.rating DESC LIMIT 5";
+
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, userId);
+        ps.setInt(2, userId); // NOT IN içindeki user_id için
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            recommended.add(mapRow(rs));
+        }
+        return recommended;
+    }
 }
