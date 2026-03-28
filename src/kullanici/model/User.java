@@ -6,6 +6,7 @@ public class User {
     private String email;
     private String passwordHash;
     private UserRole role;
+    private String avatarPath;
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -21,4 +22,7 @@ public class User {
 
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
+
+    public String getAvatarPath() { return avatarPath; }
+    public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
 }
