@@ -241,6 +241,10 @@ public class GameService {
         double finalPrice = getDiscountedPrice(game);
         purchaseDAO.save(userId, gameId, finalPrice);
         gameDAO.incrementSalesCount(gameId);
+        kutuphane.dao.LibraryDAO libDAO = new kutuphane.dao.LibraryDAO();
+        libDAO.createTablesIfNotExists();
+        libDAO.addGameToLibrary(userId, gameId);
+
     }
     // Sayfalama ile oyunları getir (Örn: page=1, pageSize=20)
     public List<Game> getGamesByPage(int page, int pageSize) throws Exception {

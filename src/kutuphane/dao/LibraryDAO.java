@@ -9,26 +9,38 @@ import java.util.List;
 
 public class LibraryDAO {
 
-    // 1. TABLOYU OTOMATİK OLUŞTUR (Eğer yoksa)
-    // Bu metodu program başlarken bir kere çağırmak iyi olabilir veya DB'yi elle güncelleyebilirsiniz.
-    public void createTableIfNotExists() {
-        String sql = "CREATE TABLE IF NOT EXISTS library (" +
+    // 1. TABLOLARI OLUŞTUR (Kütüphane, Özel Listeler ve Liste-Oyun Bağlantısı)
+    public void createTablesIfNotExists() {
+        String sqlLibrary = "CREATE TABLE IF NOT EXISTS library (" +
                 "user_id INTEGER, " +
                 "game_id INTEGER, " +
                 "purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "is_hidden INTEGER DEFAULT 0, " + // 0: Görünür, 1: Gizli
                 "PRIMARY KEY (user_id, game_id), " +
                 "FOREIGN KEY (user_id) REFERENCES users(id), " +
                 "FOREIGN KEY (game_id) REFERENCES games(id))";
+
+        String sqlCollections = "CREATE TABLE IF NOT EXISTS collections (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id INTEGER, " +
+                "name VARCHAR(50) NOT NULL)";
+
+        String sqlCollectionGames = "CREATE TABLE IF NOT EXISTS collection_games (" +
+                "collection_id INTEGER, " +
+                "game_id INTEGER, " +
+                "PRIMARY KEY (collection_id, game_id))";
+
         try (Statement stmt = DBConnection.get().createStatement()) {
-            stmt.execute(sql);
+            stmt.execute(sqlLibrary);
+            stmt.execute(sqlCollections);
+            stmt.execute(sqlCollectionGames);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    // 2. SAHİPLİK KONTROLÜ (MODÜL 2.5)
-    // Tuğalp mağazada "Satın Al" butonunu çizerken bu metodu çağıracak.
-    // Eğer 'true' dönerse butonu "Kütüphanede" olarak değiştirecek ve tıklanmasını engelleyecek.
+    // --- KÜTÜPHANE TEMEL İŞLEMLERİ ---
+
     public boolean checkOwnership(int userId, int gameId) throws SQLException {
         String sql = "SELECT 1 FROM library WHERE user_id = ? AND game_id = ?";
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
@@ -37,15 +49,9 @@ public class LibraryDAO {
         return ps.executeQuery().next();
     }
 
-    // 3. OYUN SATIN ALMA / KÜTÜPHANEYE EKLEME
-    // Kullanıcı ödemeyi başarıyla yapınca bu metot çalışacak.
     public boolean addGameToLibrary(int userId, int gameId) {
         try {
-            // Önce sahiplik kontrolü yapıyoruz ki yanlışlıkla 2 kere eklenmesin
-            if (checkOwnership(userId, gameId)) {
-                return false;
-            }
-
+            if (checkOwnership(userId, gameId)) return false;
             String sql = "INSERT INTO library (user_id, game_id) VALUES (?, ?)";
             PreparedStatement ps = DBConnection.get().prepareStatement(sql);
             ps.setInt(1, userId);
@@ -58,15 +64,13 @@ public class LibraryDAO {
         }
     }
 
-    // 4. KÜTÜPHANEYİ LİSTELEME (MODÜL 3.2)
-    // Adamın "Kütüphanem" sekmesine girdiğinde göreceği kendi oyunları.
-    // JOIN işlemi ile library tablosundaki ID'leri, games tablosundaki gerçek oyun verileriyle eşleştiriyoruz.
-    public List<Game> getUserLibrary(int userId) throws SQLException {
+    // Sadece görünür olan oyunları getir (Arkadaşların da bu metodu kullanacak!)
+    public List<Game> getVisibleLibrary(int userId) throws SQLException {
         List<Game> userGames = new ArrayList<>();
-
+        // is_hidden = 0 olanları çekeriz
         String sql = "SELECT g.* FROM games g " +
                 "JOIN library l ON g.id = l.game_id " +
-                "WHERE l.user_id = ?";
+                "WHERE l.user_id = ? AND l.is_hidden = 0";
 
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, userId);
@@ -80,11 +84,39 @@ public class LibraryDAO {
             g.setCoverUrl(rs.getString("cover_url"));
             g.setGenres(rs.getString("genres"));
             g.setRating(rs.getDouble("rating"));
-            g.setReleaseDate(rs.getLong("release_date"));
             g.setPrice(rs.getDouble("price"));
-            // (Eğer modelinizde eksik setter varsa onları atlayabilirsiniz)
             userGames.add(g);
         }
         return userGames;
+    }
+
+    // Oyunu gizle veya göster
+    public void setGameHiddenStatus(int userId, int gameId, boolean isHidden) throws SQLException {
+        String sql = "UPDATE library SET is_hidden = ? WHERE user_id = ? AND game_id = ?";
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, isHidden ? 1 : 0);
+        ps.setInt(2, userId);
+        ps.setInt(3, gameId);
+        ps.executeUpdate();
+    }
+
+    // --- ÖZEL LİSTE (KOLEKSİYON) İŞLEMLERİ ---
+
+    // Yeni Liste Oluştur (Örn: "Favorilerim")
+    public void createCollection(int userId, String collectionName) throws SQLException {
+        String sql = "INSERT INTO collections (user_id, name) VALUES (?, ?)";
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, userId);
+        ps.setString(2, collectionName);
+        ps.executeUpdate();
+    }
+
+    // Listeye Oyun Ekle
+    public void addGameToCollection(int collectionId, int gameId) throws SQLException {
+        String sql = "INSERT INTO collection_games (collection_id, game_id) VALUES (?, ?)";
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, collectionId);
+        ps.setInt(2, gameId);
+        ps.executeUpdate();
     }
 }
