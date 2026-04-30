@@ -16,7 +16,9 @@ public class DBConnection {
     }
 
     public static Connection get() throws SQLException {
-        if (connection == null) {
+        // ESKİ HALİ: if (connection == null)
+        // YENİ HALİ: Bağlantı yoksa VEYA kapanmışsa, yeniden aç!
+        if (connection == null || connection.isClosed()) {
             connection = DriverManager.getConnection("jdbc:sqlite:gamestore.db");
             createTables();
         }
