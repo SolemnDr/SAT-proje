@@ -14,12 +14,16 @@ public class Main {
             e.printStackTrace();
         }
         */
-
-        // 2. VERİTABANI GÜNCELLEMESİ
-        // Eğer users tablosunda avatar_path sütunu yoksa, hata vermeden ekler.
+        // 2. VERİTABANI GÜNCELLEMESİ VE KONTROLLERİ
         System.out.println("Veritabanı kontrolleri yapılıyor...");
+
+        // Avatar (Profil Fotoğrafı) sütunu kontrolü
         kullanici.dao.UserDAO userDAO = new kullanici.dao.UserDAO();
         userDAO.upgradeTableForAvatars();
+
+        // Yorumlar (Reviews) tablosu kontrolü - YENİ EKLENEN KISIM
+        magaza.dao.ReviewDAO reviewDAO = new magaza.dao.ReviewDAO();
+        reviewDAO.createTableIfNotExists();
 
         // 3. JAVAFX ARAYÜZÜNÜ BAŞLATAN TRUVA ATI KODU
         // Arayüzü doğrudan değil, bu sınıf üzerinden dolaylı yoldan başlatıyoruz (Hatayı atlatmak için)
