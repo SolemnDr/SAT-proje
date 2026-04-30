@@ -30,7 +30,15 @@ public class LoginController {
         switch (result) {
             case SUCCESS -> {
                 errorLabel.setText("");
-                // Ana ekrana geçiş buraya gelecek
+                try {
+                    // Başarılı girişte 1280x720 boyutunda Ana İskeleti yükle
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
+                    Stage stage = (Stage) usernameField.getScene().getWindow();
+                    stage.setScene(new Scene(loader.load(), 1280, 720));
+                    stage.centerOnScreen();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             case USER_NOT_FOUND -> errorLabel.setText("Kullanıcı bulunamadı.");
             case WRONG_PASSWORD -> errorLabel.setText("Şifre hatalı.");

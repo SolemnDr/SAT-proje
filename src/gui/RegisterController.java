@@ -39,8 +39,7 @@ public class RegisterController {
             return;
         }
 
-        UserRole role = roleStr.equals("Geliştirici") ? UserRole.PUBLISHER : UserRole.USER;
-
+        UserRole role = roleStr.equals("Yayıncı") ? UserRole.PUBLISHER : UserRole.USER;
         AuthService.AuthResult result = authService.register(username, email, password, role);
 
         switch (result) {

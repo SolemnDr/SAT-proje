@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="720.0" prefWidth="1280.0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainController">
+
+    <!-- SOL MENÜ (Sidebar) -->
+    <left>
+        <VBox prefWidth="250.0" spacing="15.0" style="-fx-background-color: #12122a; -fx-padding: 20;">
+            <Label styleClass="logo-title" text="GameStore" />
+            <Label styleClass="divider-label" text="MENÜ" />
+
+            <Button maxWidth="Infinity" onAction="#showStore" styleClass="btn-primary" text="Mağaza" />
+            <Button maxWidth="Infinity" onAction="#showLibrary" styleClass="btn-secondary" text="Kütüphanem" />
+            <Button maxWidth="Infinity" onAction="#showSocial" styleClass="btn-secondary" text="Arkadaşlar" />
+
+            <VBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
+                <Button maxWidth="Infinity" onAction="#handleLogout" styleClass="error-label" style="-fx-background-color: transparent; -fx-border-color: #ff6060; -fx-border-radius: 8;" text="Çıkış Yap" />
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ORTA DİNAMİK ALAN (İçerik buraya yüklenecek) -->
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-background-color: #1a1a2e;" />
+    </center>
+
+</BorderPane>
