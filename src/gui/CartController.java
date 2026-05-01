@@ -122,7 +122,7 @@ public class CartController {
         removeBtn.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
         removeBtn.setOnAction(e -> {
             try {
-                int currentUserId = 1; // Tuğalp'in sistemi gelince dinamik olacak
+                int currentUserId = util.SessionManager.getCurrentUserId();
                 // 1. Veritabanından sil
                 new magaza.service.GameService().removeFromCart(currentUserId, id);
             } catch (Exception ex) {

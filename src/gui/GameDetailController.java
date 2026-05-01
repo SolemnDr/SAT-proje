@@ -60,7 +60,7 @@ public class GameDetailController {
     @FXML
     private void handleAddToCart() {
         try {
-            int currentUserId = 1; // Şimdilik test kullanıcısı ID'si (Tuğalp'in login sisteminden sonra dinamik olacak)
+            int currentUserId = util.SessionManager.getCurrentUserId();
             magaza.service.GameService gameService = new magaza.service.GameService();
 
             // 1. GERÇEK VERİTABANI SEPETİNE EKLE (Backend'in hata vermemesi için)

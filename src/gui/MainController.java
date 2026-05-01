@@ -7,6 +7,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import magaza.model.Game;
+import magaza.service.GameService;
+import util.SessionManager;
+import util.CartService; // Geçici RAM hafızası için ekledik
+
+import java.util.List;
 
 public class MainController {
 
@@ -18,11 +24,49 @@ public class MainController {
     private int cartItemCount = 0;
     private double cartTotalPrice = 0.0;
 
+    // Veritabanı işlemleri için GameService'i ekledik
+    private final GameService gameService = new GameService();
+
     @FXML
     public void initialize() {
         instance = this;
+
+        // UYGULAMA AÇILDIĞINDA SEPETİ VERİTABANINDAN YÜKLE (Senkronizasyon)
+        loadUserCart();
+
         showStore();
     }
+
+    // YENİ EKLENEN METOT: Veritabanı ile Arayüzü Eşitler
+    private void loadUserCart() {
+        try {
+            int currentUserId = SessionManager.getCurrentUserId();
+            List<Game> cartGames = gameService.getCart(currentUserId);
+
+            // RAM'deki geçici sepeti temizle (eski kalıntılar olmasın)
+            CartService.clearCart();
+
+            if (cartGames != null && !cartGames.isEmpty()) {
+                int count = cartGames.size();
+                double total = 0.0;
+
+                for (Game game : cartGames) {
+                    total += game.getPrice();
+                    // RAM'e (CartService) de oyunların ID'sini ekliyoruz ki mağazada "Zaten Sepette" uyarısı çalışsın
+                    CartService.addToCart(game.getId());
+                }
+
+                // Senin hazırladığın mükemmel metodu çağırıp UI'ı güncelliyoruz
+                syncCartUI(count, total);
+            } else {
+                resetCartUI();
+            }
+        } catch (Exception e) {
+            System.out.println("Açılışta sepet yüklenirken hata oluştu!");
+            e.printStackTrace();
+        }
+    }
+
     public void syncCartUI(int count, double total) {
         this.cartItemCount = count;
         this.cartTotalPrice = total;
@@ -36,6 +80,7 @@ public class MainController {
         cartTotalPrice += addedPrice;
         cartInfoLabel.setText(String.format(java.util.Locale.US, "Sepet: %d Ürün (%.2f TL)", cartItemCount, cartTotalPrice));
     }
+
     public void resetCartUI() {
         cartItemCount = 0;
         cartTotalPrice = 0.0;
@@ -46,7 +91,6 @@ public class MainController {
 
     @FXML
     private void showCartPage() {
-        // Önceden sadece konsola yazdırıyordu, şimdi sepet ekranını yüklüyor
         loadPage("cart.fxml");
     }
 
@@ -80,6 +124,9 @@ public class MainController {
     @FXML
     private void handleLogout() {
         try {
+            // YENİ EKLENDİ: Çıkış yaparken Oturumu ve Sepet RAM'ini tamamen temizliyoruz
+            SessionManager.logout();
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
             Stage stage = (Stage) contentArea.getScene().getWindow();
             stage.setScene(new Scene(loader.load(), 960, 560));

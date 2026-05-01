@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import magaza.service.GameService;
+import util.SessionManager;
+import util.CartService;
 
 public class PaymentController {
 
@@ -27,7 +29,7 @@ public class PaymentController {
 
     @FXML
     public void initialize() {
-        // 1. KART İSMİ: Sadece harf ve boşluk kabul eder, yazarken otomatik BÜYÜK harf yapar.
+        // 1. KART İSMİ: Sadece harf ve boşluk kabul eder, otomatik BÜYÜK harf yapar.
         cardNameField.textProperty().addListener((obs, oldText, newText) -> {
             String clean = newText.replaceAll("[^a-zA-ZğüşıöçĞÜŞİÖÇ\\s]", "");
             if (!newText.equals(clean)) {
@@ -35,17 +37,13 @@ public class PaymentController {
             }
         });
 
-        // 2. KART NUMARASI: Sadece Rakam, Maksimum 16 Hane. Yanda logoyu değiştirir.
+        // 2. KART NUMARASI: Sadece Rakam, Max 16 Hane ve her 4 rakamda bir otomatik boşluk!
         cardNumberField.textProperty().addListener((obs, oldText, newText) -> {
-            // Önce kullanıcının girdiği her şeyi rakamlar kalacak şekilde temizle
+            // Sadece rakamları al
             String clean = newText.replaceAll("[^\\d]", "");
+            if (clean.length() > 16) clean = clean.substring(0, 16);
 
-            // 16 rakamı geçmesini engelle
-            if (clean.length() > 16) {
-                clean = clean.substring(0, 16);
-            }
-
-            // Her 4 rakamda bir araya boşluk ekleyen algoritma
+            // Her 4 rakamda bir boşluk ekle
             StringBuilder formatted = new StringBuilder();
             for (int i = 0; i < clean.length(); i++) {
                 if (i > 0 && i % 4 == 0) {
@@ -54,16 +52,14 @@ public class PaymentController {
                 formatted.append(clean.charAt(i));
             }
 
-            // Ekrandaki yazı ile bizim formatlı yazımız farklıysa günceller (Sonsuz döngüyü önler)
             if (!newText.equals(formatted.toString())) {
                 cardNumberField.setText(formatted.toString());
             } else {
-                // Ekran zaten formatlıysa logoyu belirlemeye gönder (boşluksuz halini yolluyoruz)
-                detectCardType(clean);
+                detectCardType(clean); // Rakam tipine göre sağdaki logoyu değiştir
             }
         });
 
-        // 3. SON KULLANMA TARİHİ: Sadece Rakam, Max 4 Hane. Ay 12'yi geçemez, araya otomatik '/' atar.
+        // 3. SON KULLANMA TARİHİ: Max 4 Hane. Ay 12'yi geçemez, araya otomatik '/' atar.
         expiryField.textProperty().addListener((obs, oldText, newText) -> {
             String clean = newText.replaceAll("[^\\d]", "");
             if (clean.length() > 4) clean = clean.substring(0, 4);
@@ -94,9 +90,7 @@ public class PaymentController {
         });
     }
 
-    private void detectCardType(String number) {
-        String cleanNumber = number.replaceAll("\\s+", "");
-
+    private void detectCardType(String cleanNumber) {
         if (cleanNumber.startsWith("4")) {
             cardTypeLabel.setText("VISA");
             cardTypeLabel.setStyle("-fx-background-color: #1a1f71; -fx-text-fill: white;");
@@ -105,7 +99,6 @@ public class PaymentController {
             cardTypeLabel.setStyle("-fx-background-color: #eb001b; -fx-text-fill: white;");
         } else if (cleanNumber.startsWith("9")) {
             cardTypeLabel.setText("TROY");
-            // Troy için göze hoş gelen, diğerlerinden ayırt edici şık bir turkuaz/teal tonu
             cardTypeLabel.setStyle("-fx-background-color: #00a8a8; -fx-text-fill: white;");
         } else {
             cardTypeLabel.setText("?");
@@ -113,16 +106,14 @@ public class PaymentController {
         }
     }
 
-    // KARTIN HEM MARKASINI HEM DE GERÇEKLİĞİNİ DOĞRULAMA
+    // KARTIN HEM MARKASINI HEM DE GERÇEKLİĞİNİ DOĞRULAYAN ZIRH (Luhn Algoritması)
     private boolean isStrictlyValidCard(String number) {
         String cleanNumber = number.replaceAll("\\s+", "");
 
-        // 1. KURAL: Visa (4), Mastercard (5) veya Troy (9) ile başlamak ZORUNDA
         if (!(cleanNumber.startsWith("4") || cleanNumber.startsWith("5") || cleanNumber.startsWith("9"))) {
             return false;
         }
 
-        // 2. KURAL: Luhn Algoritması (Rastgele sallanan sayıları anında yakalar)
         int sum = 0;
         boolean alternate = false;
         for (int i = cleanNumber.length() - 1; i >= 0; i--) {
@@ -140,25 +131,23 @@ public class PaymentController {
     @FXML
     private void handlePayment() {
         String name = cardNameField.getText();
-        String number = cardNumberField.getText();
+        // Veritabanına gönderirken ve test ederken boşlukları temizleyerek alıyoruz
+        String number = cardNumberField.getText().replaceAll("\\s+", "");
         String cvv = cvvField.getText();
         String exp = expiryField.getText();
 
-        // Boşluk kontrolü
         if (name.isEmpty() || number.isEmpty() || cvv.isEmpty() || exp.isEmpty()) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");
             errorLabel.setText("Lütfen tüm alanları doldurun.");
             return;
         }
 
-        // Hane eksikliği kontrolü
         if (number.length() < 15) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");
             errorLabel.setText("Kart numarası 15 veya 16 haneli olmalıdır.");
             return;
         }
 
-        // Tarih ve Yıl kontrolü (2026 yılından öncesini ve geçmiş ayları engelleme)
         if (exp.length() != 5) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");
             errorLabel.setText("Geçersiz Tarih! (Örn: 12/28)");
@@ -168,12 +157,12 @@ public class PaymentController {
         int mm = Integer.parseInt(exp.substring(0, 2));
         int yy = Integer.parseInt(exp.substring(3, 5));
 
-        // 2026 yılı 5. (Mayıs) ayındayız. Buna göre hesaplanır.
         if (yy < 26 || (yy == 26 && mm < 5)) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");
             errorLabel.setText("Kartınızın son kullanma tarihi geçmiş!");
             return;
         }
+
         if (!isStrictlyValidCard(number)) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");
             errorLabel.setText("Reddedildi! Sadece geçerli Visa, Mastercard veya Troy kartları kabul edilmektedir.");
@@ -184,11 +173,15 @@ public class PaymentController {
         errorLabel.setText("Ödeme işleniyor, lütfen bekleyin...");
 
         try {
-            int currentUserId = 1;
+            // HARDCODED "1" SİLİNDİ, YERİNE SESSION MANAGER EKLENDİ!
+            int currentUserId = SessionManager.getCurrentUserId();
+
             gameService.purchaseCart(currentUserId, number);
 
-            util.CartService.clearCart();
+            // Arayüzün geçici sepet hafızasını temizle
+            CartService.clearCart();
 
+            // Ana ekrandaki üst barı sıfırla ("0 Ürün")
             if (MainController.instance != null) {
                 MainController.instance.resetCartUI();
             }
