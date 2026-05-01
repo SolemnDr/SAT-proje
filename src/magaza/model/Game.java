@@ -12,6 +12,7 @@ public class Game {
     private int publisherId;
     private double discountPercent;
     private int salesCount;
+    private String description;
 
     public double getDiscountPercent() { return discountPercent; }
     public void setDiscountPercent(double discountPercent) { this.discountPercent = discountPercent; }
@@ -45,4 +46,11 @@ public class Game {
 
     public int getPublisherId() { return publisherId; }
     public void setPublisherId(int publisherId) { this.publisherId = publisherId; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

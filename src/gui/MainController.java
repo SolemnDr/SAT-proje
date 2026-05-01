@@ -113,12 +113,12 @@ public class MainController {
 
     @FXML
     private void showLibrary() {
-        System.out.println("Kütüphane ekranına geçiliyor...");
+        loadPage("library.fxml");
     }
 
     @FXML
     private void showSocial() {
-        System.out.println("Sosyal ekrana geçiliyor...");
+        loadPage("social.fxml");
     }
 
     @FXML

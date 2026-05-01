@@ -8,25 +8,29 @@ import java.util.List;
 
 public class MessageDAO {
 
-    // 1. MESAJLAR TABLOSUNU OLUŞTUR
-    public void createTableIfNotExists() {
+    public MessageDAO() {
+        // Tablo oluşturan metodunun adı neyse onu çağır
+        createTable();
+    }
+    public void createTable() {
         String sql = "CREATE TABLE IF NOT EXISTS messages (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "sender_id INTEGER, " +
                 "receiver_id INTEGER, " +
-                "message_text TEXT NOT NULL, " +
-                "sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "message_text TEXT, " +
+                "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "FOREIGN KEY (sender_id) REFERENCES users(id), " +
                 "FOREIGN KEY (receiver_id) REFERENCES users(id))";
-        try (Statement stmt = DBConnection.get().createStatement()) {
+
+        try (java.sql.Statement stmt = util.DBConnection.get().createStatement()) {
             stmt.execute(sql);
-        } catch (SQLException e) {
+        } catch (java.sql.SQLException e) {
+            System.out.println("Mesaj tablosu oluşturulurken hata!");
             e.printStackTrace();
         }
     }
-
     // 2. MESAJ GÖNDERME
-    public boolean sendMessage(int senderId, int receiverId, String messageText) {
+    public static boolean sendMessage(int senderId, int receiverId, String messageText) {
         String sql = "INSERT INTO messages (sender_id, receiver_id, message_text) VALUES (?, ?, ?)";
         try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
             ps.setInt(1, senderId);
@@ -43,7 +47,7 @@ public class MessageDAO {
     // 3. İKİ KİŞİ ARASINDAKİ SOHBET GEÇMİŞİNİ GETİRME (Tarih Sıralı)
     // Tuğalp sohbet penceresini açtığında bu metot çalışıp eski mesajları dizecek.
     // Şimdilik mesajları String olarak döndürüyoruz, isterseniz ileride Message nesnesine çevirebilirsiniz.
-    public List<String> getConversation(int user1Id, int user2Id) throws SQLException {
+    public static List<String> getConversation(int user1Id, int user2Id) throws SQLException {
         List<String> conversation = new ArrayList<>();
 
         // Hem benim ona attığım hem onun bana attığı mesajları zaman sırasına göre getirir

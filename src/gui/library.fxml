@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="20" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="gui.LibraryController" style="-fx-background-color: transparent;">
+    <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+
+    <!-- Üst Başlık ve Arama Alanı -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Kütüphanem" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+        <TextField fx:id="searchField" promptText="Oyunlarında ara..." prefWidth="300" style="-fx-background-color: #2a2a4a; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-border-color: #3a3a6a; -fx-border-radius: 20;"/>
+    </HBox>
+
+    <!-- Oyun Kartlarının Dizileceği Alan -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="gamesGrid" hgap="25" vgap="25" style="-fx-background-color: transparent;">
+            <!-- Oyun kartları Java koduyla buraya eklenecek -->
+        </FlowPane>
+    </ScrollPane>
+</VBox>

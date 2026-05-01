@@ -98,6 +98,7 @@ public class GameDAO {
         g.setSalesCount(rs.getInt("sales_count"));
         return g;
     }
+
     // Oyun sil
     public void delete(int gameId) throws SQLException {
         String sql = "DELETE FROM games WHERE id = ?";
@@ -155,6 +156,7 @@ public class GameDAO {
         }
         return games;
     }
+
     // Çok satanları getir
     public List<Game> findBestSellers() throws SQLException {
         List<Game> games = new ArrayList<>();
@@ -193,6 +195,7 @@ public class GameDAO {
         ps.setInt(1, gameId);
         ps.executeUpdate();
     }
+
     // ID'ye göre tek bir oyun getir (Performans Optimizasyonu)
     public Game findById(int id) throws SQLException {
         String sql = "SELECT * FROM games WHERE id = ?";
@@ -244,17 +247,18 @@ public class GameDAO {
         }
         return games;
     }
+
     public List<Game> getRecommendationsForUser(int userId) throws SQLException {
         List<Game> recommended = new ArrayList<>();
 
         // Çok havalı bir İç İçe SQL (Subquery) yazıyoruz:
         String sql = "SELECT DISTINCT g.* FROM games g " +
                 // Adamın sahip olduğu oyunlarla aynı kategorideki oyunları bul
-                "JOIN library l ON l.user_id = ? " +
+                "JOIN purchases l ON l.user_id = ? " + // library tablosunu da purchases olarak değiştirdim ki patlamasın
                 "JOIN games ug ON l.game_id = ug.id " +
                 "WHERE g.genres LIKE '%' || ug.genres || '%' " +
                 // Adamın zaten satın aldığı oyunları önerme (Listeden çıkar)
-                "AND g.id NOT IN (SELECT game_id FROM library WHERE user_id = ?) " +
+                "AND g.id NOT IN (SELECT game_id FROM purchases WHERE user_id = ?) " +
                 // En yüksek puanlıları en üste koy ve sadece 5 tane öner
                 "ORDER BY g.rating DESC LIMIT 5";
 
@@ -267,5 +271,23 @@ public class GameDAO {
             recommended.add(mapRow(rs));
         }
         return recommended;
+    }
+
+    // --- KÜTÜPHANE İÇİN YENİ EKLENEN METOT ---
+    // KULLANICININ SATIN ALDIĞI OYUNLARI GETİR
+    public List<Game> getPurchasedGames(int userId) throws SQLException {
+        List<Game> ownedGames = new ArrayList<>();
+
+        // purchases tablosundan verileri çekiyoruz
+        String sql = "SELECT games.* FROM games INNER JOIN purchases ON games.id = purchases.game_id WHERE purchases.user_id = ?";
+
+        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            ownedGames.add(mapRow(rs));
+        }
+        return ownedGames;
     }
 }

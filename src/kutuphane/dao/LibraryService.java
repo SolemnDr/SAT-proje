@@ -1,5 +1,7 @@
 package kutuphane.dao;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import kutuphane.dao.LibraryDAO;
 import magaza.model.Game;
 
@@ -34,5 +36,8 @@ public class LibraryService {
     // Oyunu özel listeye ekle
     public void addGameToList(int collectionId, int gameId) throws Exception {
         libraryDAO.addGameToCollection(collectionId, gameId);
+    }
+    public static ObservableList<Game> getUserOwnedGames() {
+        return FXCollections.observableArrayList();
     }
 }

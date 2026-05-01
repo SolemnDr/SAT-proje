@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import kullanici.service.AuthService;
+import util.Session;
 
 public class LoginController {
 
@@ -29,9 +30,9 @@ public class LoginController {
 
         switch (result) {
             case SUCCESS -> {
+                Session.setCurrentUser(authService.getLoggedInUser());
                 errorLabel.setText("");
                 try {
-                    // Başarılı girişte 1280x720 boyutunda Ana İskeleti yükle
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
                     Stage stage = (Stage) usernameField.getScene().getWindow();
                     stage.setScene(new Scene(loader.load(), 1280, 720));
@@ -49,9 +50,7 @@ public class LoginController {
     @FXML
     private void handleRegister() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("register.fxml")
-            );
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("register.fxml"));
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));
         } catch (Exception e) {

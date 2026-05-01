@@ -1,15 +1,20 @@
 package sosyal.dao;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import kullanici.model.User;
 import kullanici.model.UserRole;
 import util.DBConnection;
-
+import util.Session;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FriendDAO {
 
+    public FriendDAO() {
+        createTableIfNotExists();
+    }
     // 1. TABLO OLUŞTURMA (PENDING ve ACCEPTED durumları eklendi)
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS friendships (" +
@@ -125,5 +130,29 @@ public class FriendDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public static ObservableList<User> getFriendsOfUser() {
+        ObservableList<User> friends = FXCollections.observableArrayList();
+        int userId = Session.getCurrentUserId();
+        if (userId == -1) return friends;
+
+        String sql = "SELECT u.id, u.username, u.email, u.role FROM users u " +
+                "JOIN friendships f ON u.id = f.friend_id " +
+                "WHERE f.user_id = ? AND f.status = 'ACCEPTED'";
+        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                User u = new User();
+                u.setId(rs.getInt("id"));
+                u.setUsername(rs.getString("username"));
+                u.setEmail(rs.getString("email"));
+                u.setRole(UserRole.valueOf(rs.getString("role")));
+                friends.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return friends;
     }
 }

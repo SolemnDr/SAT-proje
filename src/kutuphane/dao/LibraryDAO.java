@@ -64,7 +64,7 @@ public class LibraryDAO {
         }
     }
 
-    // Sadece görünür olan oyunları getir (Arkadaşların da bu metodu kullanacak!)
+    // Sadece görünür olan oyunları getir
     public List<Game> getVisibleLibrary(int userId) throws SQLException {
         List<Game> userGames = new ArrayList<>();
         // is_hidden = 0 olanları çekeriz
