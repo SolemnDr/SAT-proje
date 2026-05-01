@@ -85,26 +85,48 @@ public class SocialController {
         messagesListView.getItems().clear();
         if (selectedFriend == null) return;
 
-        // 1. EN ÜSTTEKİ ŞIK TARİH (Sadece sayfa açıldığında 1 kere)
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy | HH:mm");
-        String tarihSeridi = "─────────  " + now.format(dtf) + "  ─────────";
-        messagesListView.getItems().add(tarihSeridi);
-
         try {
             List<String> history = messageDAO.getConversation(currentUserId, selectedFriend.getId());
-            if (history != null && !history.isEmpty()) {
-                for (String msg : history) {
-                    // --- KRİTİK DÜZELTME: Mesajın başındaki [2026-05-01 18:08:23] kısmını tamamen siler ---
-                    // Bu regex hem tarihi hem saati hem de köşeli parantezleri temizler
-                    String temizMesaj = msg.replaceAll("^\\[.*?\\]\\s*", "");
-
-                    // Eğer veritabanından gelen mesajda hala "Ben:" veya "Sen:" varsa onları korur
-                    messagesListView.getItems().add(temizMesaj);
-                }
-            } else {
-                messagesListView.getItems().add("Sistem: Henüz bir mesaj yok. İlk mesajı sen gönder!");
+            if (history == null || history.isEmpty()) {
+                messagesListView.getItems().add("Sistem: Henüz bir mesaj yok.");
+                return;
             }
+
+            // Tarih ve Saat Formatı (Örn: 01 Mayıs 2026 | 21:30)
+            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy | HH:mm");
+            java.time.LocalDateTime sonEtiketZamani = null;
+
+            for (String msg : history) {
+                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\[(.*?)\\]");
+                java.util.regex.Matcher matcher = pattern.matcher(msg);
+
+                if (matcher.find()) {
+                    String zamanStr = matcher.group(1);
+
+                    // UTC'den Yerel Saate Çeviri (3 saat farkı kapatır)
+                    java.time.LocalDateTime utcZamani = java.time.LocalDateTime.parse(zamanStr,
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                    java.time.LocalDateTime mesajZamani = utcZamani.atZone(java.time.ZoneId.of("UTC"))
+                            .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                            .toLocalDateTime();
+
+                    // --- 5 DAKİKA KONTROLÜ ---
+                    // Eğer bu ilk mesajsa VEYA son etiketten itibaren 5 dakika geçmişse YENİ ETİKET AT
+                    if (sonEtiketZamani == null || java.time.Duration.between(sonEtiketZamani, mesajZamani).toMinutes() >= 5) {
+                        String ayirici = "─────────  " + mesajZamani.format(dtf) + "  ─────────";
+                        messagesListView.getItems().add(ayirici);
+                        sonEtiketZamani = mesajZamani; // Son etiket zamanını güncelle
+                    }
+                }
+
+                // Mesajın başındaki [tarih] kalabalığını siler
+                String temizMesaj = msg.replaceAll("^\\[.*?\\]\\s*", "");
+                messagesListView.getItems().add(temizMesaj);
+            }
+
+            messagesListView.scrollTo(messagesListView.getItems().size() - 1);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -114,18 +136,21 @@ public class SocialController {
     private void handleSendMessage() {
         String text = messageInput.getText().trim();
         if (!text.isEmpty() && selectedFriend != null) {
-
-            // Sistem mesajını temizle
-            messagesListView.getItems().removeIf(m -> m.startsWith("Sistem:"));
-
-            // Ekrana sadece "Sen: mesaj" olarak bas (Zaman damgası ekleme)
-            messagesListView.getItems().add("Sen: " + text);
-            messageInput.clear();
-            messagesListView.scrollTo(messagesListView.getItems().size() - 1);
-
             try {
-                messageDAO.sendMessage(currentUserId, selectedFriend.getId(), text);
-            } catch (Exception e) { e.printStackTrace(); }
+                // 1. Önce veritabanına kaydet
+                boolean success = messageDAO.sendMessage(currentUserId, selectedFriend.getId(), text);
+
+                if (success) {
+                    messageInput.clear();
+                    // 2. KRİTİK DÜZELTME: Ekranı elle güncellemek yerine loadMessages'ı çağır
+                    // Böylece 10 dakika geçmişse o meşhur "zaman çizgisi" anında belirir.
+                    loadMessages();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Hata", "Mesaj gönderilemedi.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
