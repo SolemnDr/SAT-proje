@@ -48,17 +48,6 @@ public class SocialController {
         // 3. Önce veritabanından gerçek arkadaşları yükle
         loadFriends();
 
-        // 4. Test kullanıcılarını ekle (loadFriends'ten sonra ekle ki silinmesinler)
-        User test1 = new User();
-        test1.setUsername("Recaizade Mahmut Ekrem");
-        test1.setId(998);
-
-        User test2 = new User();
-        test2.setUsername("Barış Alper Yılmaz");
-        test2.setId(999);
-
-        friendsListView.getItems().addAll(test1, test2);
-
         // 5. Arkadaş seçildiğinde yapılacak işlem
         friendsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {

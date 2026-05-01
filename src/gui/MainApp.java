@@ -8,12 +8,12 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
-    @Override
     public void start(Stage primaryStage) throws Exception {
-        // Sadece bu metot kalsın, diğer start metodunu sil!
-        Parent root = FXMLLoader.load(getClass().getResource("/gui/main_layout.fxml"));
-        primaryStage.setTitle("Oyun Kütüphanesi");
-        primaryStage.setScene(new Scene(root));
+        // BURASI ÇOK ÖNEMLİ: Uygulamanın ilk açacağı sayfa login.fxml olmalı!
+        Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
+
+        primaryStage.setTitle("GameStore");
+        primaryStage.setScene(new Scene(root)); // Ekran boyutları varsa ekleyebilirsin
         primaryStage.show();
     }
 

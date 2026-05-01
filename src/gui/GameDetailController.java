@@ -3,11 +3,11 @@ package gui;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button; // BUNU EKLEDİK
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import magaza.model.Game; // setGame için eklendi
 import util.DBConnection;
 
 import java.sql.Connection;
@@ -20,10 +20,30 @@ public class GameDetailController {
     @FXML private Label nameLabel;
     @FXML private Label priceLabel;
     @FXML private Label summaryLabel;
-    @FXML private Button addToCartButton; // BUNU EKLEDİK
+    @FXML private Button addToCartButton;
+
+    // YORUM SİSTEMİ İÇİN YENİ EKLENEN FXML DEĞİŞKENLERİ
+    @FXML private ListView<String> reviewsListView;
+    @FXML private TextField reviewInput;
+    @FXML private ComboBox<Integer> ratingComboBox;
 
     private int currentGameId;
-    private double currentGamePrice; // Sepete eklerken fiyatı bilmemiz lazım
+    private double currentGamePrice;
+    private final magaza.dao.ReviewDAO reviewDAO = new magaza.dao.ReviewDAO();
+
+    @FXML
+    public void initialize() {
+        // Puanlama kutusuna 1'den 5'e kadar seçenekleri ekliyoruz
+        if (ratingComboBox != null) {
+            ratingComboBox.getItems().addAll(1, 2, 3, 4, 5);
+        }
+    }
+
+    // İŞTE KÜTÜPHANEDEN GELEN HATAYI ÇÖZEN O EKSİK METOT!
+    public void setGame(Game game) {
+        // Obje geldiğinde içinden ID'yi alıp normal yükleme metodumuzu çağırıyoruz
+        loadGameData(game.getId());
+    }
 
     public void loadGameData(int gameId) {
         this.currentGameId = gameId;
@@ -51,25 +71,76 @@ public class GameDetailController {
                     coverUrl = coverUrl.replace("t_thumb", "t_cover_big");
                     coverImageView.setImage(new Image(coverUrl, true));
                 }
+
+                // OYUN YÜKLENDİĞİNDE YORUMLARI DA GETİR
+                loadReviews(gameId);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private void loadReviews(int gameId) {
+        if (reviewsListView == null) return;
+
+        reviewsListView.getItems().clear();
+
+        try {
+            // DAO sınıfındaki hazır metodu kullanıyoruz!
+            java.util.List<magaza.model.Review> reviews = reviewDAO.getGameReviews(gameId);
+
+            if (reviews == null || reviews.isEmpty()) {
+                reviewsListView.getItems().add("Bu oyun için henüz yorum yapılmamış. İlk yorumu sen yaz!");
+            } else {
+                for (magaza.model.Review r : reviews) {
+                    // Yıldız sayısına göre emoji oluştur (Örn: ⭐⭐⭐)
+                    String starString = "⭐".repeat(Math.max(0, r.getRating()));
+
+                    // Listeye şık bir formatta ekle (Senin DAO username'i de getiriyor, harika!)
+                    reviewsListView.getItems().add(r.getUsername() + " (" + starString + "):\n" + r.getComment());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Yorumlar yüklenirken hata oluştu!");
+            e.printStackTrace();
+        }
+    }
+
+    // --- YENİ: YORUM GÖNDERME METODU ---
+    @FXML
+    private void handleSubmitReview() {
+        int userId = util.Session.getCurrentUserId();
+        Integer rating = ratingComboBox.getValue();
+        String comment = reviewInput.getText().trim();
+
+        if (rating == null || comment.isEmpty()) {
+            System.out.println("Lütfen bir puan seçin ve yorum yazın!");
+            return;
+        }
+
+        // Yine DAO'daki efsane addReview metodumuzu kullanıyoruz
+        boolean isSuccess = reviewDAO.addReview(userId, currentGameId, rating, comment);
+
+        if (isSuccess) {
+            // Gönderdikten sonra kutuları temizle ve listeyi yenile
+            reviewInput.clear();
+            ratingComboBox.setValue(null);
+            loadReviews(currentGameId);
+            System.out.println("Yorum başarıyla eklendi/güncellendi!");
+        } else {
+            System.out.println("Yorum eklenirken veritabanı hatası!");
+        }
+    }
+
     @FXML
     private void handleAddToCart() {
         try {
-            int currentUserId = util.SessionManager.getCurrentUserId();
+            int currentUserId = util.Session.getCurrentUserId();
             magaza.service.GameService gameService = new magaza.service.GameService();
 
-            // 1. GERÇEK VERİTABANI SEPETİNE EKLE (Backend'in hata vermemesi için)
             gameService.addToCart(currentUserId, currentGameId);
+            util.CartService.addToCart(currentGameId); // Metot adını addToCart olarak düzelttim (senin util.CartService'e göre)
 
-            // 2. ARAYÜZ HAFIZASINA DA EKLE (Sepetim sayfasında oyunları görebilmemiz için)
-            util.CartService.addGame(currentGameId);
-
-            // 3. Üst barı güncelle ve butonu yeşile boyayıp kilitle
             if (MainController.instance != null) {
                 MainController.instance.updateCartUI(currentGamePrice);
             }
@@ -79,7 +150,6 @@ public class GameDetailController {
             addToCartButton.setDisable(true);
 
         } catch (Exception e) {
-            // Eğer oyun zaten veritabanında sepetteyse veya daha önce satın alınmışsa burası çalışır
             System.out.println("Sepete eklenemedi: " + e.getMessage());
             addToCartButton.setText("Zaten Eklendi/Alındı");
             addToCartButton.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white;");

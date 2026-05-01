@@ -6,7 +6,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import magaza.service.GameService;
-import util.SessionManager;
 import util.CartService;
 
 public class PaymentController {
@@ -174,7 +173,7 @@ public class PaymentController {
 
         try {
             // HARDCODED "1" SİLİNDİ, YERİNE SESSION MANAGER EKLENDİ!
-            int currentUserId = SessionManager.getCurrentUserId();
+            int currentUserId = util.Session.getCurrentUserId();
 
             gameService.purchaseCart(currentUserId, number);
 

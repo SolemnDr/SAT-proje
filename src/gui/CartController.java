@@ -122,7 +122,7 @@ public class CartController {
         removeBtn.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
         removeBtn.setOnAction(e -> {
             try {
-                int currentUserId = util.SessionManager.getCurrentUserId();
+                int currentUserId = util.Session.getCurrentUserId();
                 // 1. Veritabanından sil
                 new magaza.service.GameService().removeFromCart(currentUserId, id);
             } catch (Exception ex) {

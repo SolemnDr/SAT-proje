@@ -9,7 +9,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import magaza.model.Game;
 import magaza.service.GameService;
-import util.SessionManager;
 import util.CartService; // Geçici RAM hafızası için ekledik
 
 import java.util.List;
@@ -40,7 +39,7 @@ public class MainController {
     // YENİ EKLENEN METOT: Veritabanı ile Arayüzü Eşitler
     private void loadUserCart() {
         try {
-            int currentUserId = SessionManager.getCurrentUserId();
+            int currentUserId = util.Session.getCurrentUserId();
             List<Game> cartGames = gameService.getCart(currentUserId);
 
             // RAM'deki geçici sepeti temizle (eski kalıntılar olmasın)
@@ -125,7 +124,7 @@ public class MainController {
     private void handleLogout() {
         try {
             // YENİ EKLENDİ: Çıkış yaparken Oturumu ve Sepet RAM'ini tamamen temizliyoruz
-            SessionManager.logout();
+            util.Session.setCurrentUser(null);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
             Stage stage = (Stage) contentArea.getScene().getWindow();

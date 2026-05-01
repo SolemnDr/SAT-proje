@@ -14,18 +14,31 @@ public class LibraryController {
     // FXML dosyasındaki fx:id="gamesGrid" ile birebir aynı olmalı
     @FXML private FlowPane gamesGrid;
     @FXML private TextField searchField;
+    private final magaza.service.GameService gameService = new magaza.service.GameService();
 
     @FXML
     public void initialize() {
-        // 1. Veritabanından gelen veya oluşturulan oyunları listeye ekle
-        List<Game> myGames = new ArrayList<>();
+        // Oturumdaki gerçek kullanıcı ID'sini al
+        int currentUserId = util.Session.getCurrentUserId();
 
-        // ÖRNEK: İsme göre resim atayan bir yapı kuruyoruz
-        myGames.add(createGameWithImage("The Witcher 3", "https://images.igdb.com/igdb/image/upload/t_cover_big/co1sf5.jpg"));
-        myGames.add(createGameWithImage("Cyberpunk 2077", "https://images.igdb.com/igdb/image/upload/t_cover_big/co2mjt.jpg"));
-        myGames.add(createGameWithImage("Red Dead Redemption 2", "https://images.igdb.com/igdb/image/upload/t_cover_big/co1q1f.jpg"));
+        try {
+            // Veritabanından bu kullanıcının SATIN ALDIĞI oyunları çek
+            List<Game> myGames = gameService.getPurchasedGames(currentUserId);
 
-        renderGames(myGames);
+            if (myGames != null && !myGames.isEmpty()) {
+                // Oyun varsa ekrana diz
+                renderGames(myGames);
+            } else {
+                // Kütüphane boşsa şık bir uyarı göster
+                gamesGrid.getChildren().clear();
+                Label emptyLabel = new Label("Kütüphanenizde henüz oyun bulunmuyor. Mağazaya göz atıp maceralara atılabilirsiniz!");
+                emptyLabel.setStyle("-fx-text-fill: #7a7a9a; -fx-font-size: 16px; -fx-font-style: italic;");
+                gamesGrid.getChildren().add(emptyLabel);
+            }
+        } catch (Exception e) {
+            System.out.println("Kütüphane yüklenirken hata oluştu!");
+            e.printStackTrace();
+        }
     }
 
     private Game createGameWithImage(String name, String url) {
@@ -55,16 +68,39 @@ public class LibraryController {
         iv.setPreserveRatio(true);
 
         // Background loading kasmayı engeller
-        Image img = new Image(game.getDescription(), true);
+        Image img = new Image(game.getCoverUrl(), true);
         iv.setImage(img);
 
         Label nameLabel = new Label(game.getName());
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
         nameLabel.setWrapText(true);
 
-        Button playBtn = new Button("Oyna");
+        Button playBtn = new Button("Detaylar"); // İstersen "Oyna" olarak bırak
         playBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
         playBtn.setPrefWidth(120);
+
+        // --- YENİ EKLENEN KISIM: Tıklama Olayı (Event) ---
+        playBtn.setOnAction(event -> {
+            try {
+                // Oyun detay sayfasını (gameDetail.fxml) yükle
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("gameDetail.fxml"));
+                javafx.scene.Node detailPage = loader.load();
+
+                // Detay sayfasına hangi oyuna tıklandığını haber ver
+                // (Eğer GameDetailController'ının adı farklıysa ona göre düzelt)
+                gui.GameDetailController controller = loader.getController();
+                controller.setGame(game);
+
+                // MainController'daki contentArea'yı bulup içine detay sayfasını göm
+                javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) playBtn.getScene().lookup("#contentArea");
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(detailPage);
+            } catch (Exception e) {
+                System.out.println("Oyun detay sayfası açılamadı!");
+                e.printStackTrace();
+            }
+        });
+        // --------------------------------------------------
 
         card.getChildren().addAll(iv, nameLabel, playBtn);
         return card;
