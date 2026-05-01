@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="720.0" prefWidth="1030.0" spacing="40.0" style="-fx-background-color: #1a1a2e; -fx-padding: 50;" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GameDetailController">
+
+    <!-- SOL TARAF: Devasa Kapak Fotoğrafı -->
+    <ImageView fx:id="coverImageView" fitWidth="350.0" preserveRatio="true" />
+
+    <!-- SAĞ TARAF: Oyun Bilgileri ve Butonlar -->
+    <VBox spacing="20.0" HBox.hgrow="ALWAYS">
+
+        <Label fx:id="nameLabel" style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;" text="Oyun Adı" wrapText="true" />
+
+        <Label fx:id="priceLabel" style="-fx-text-fill: #4caf50; -fx-font-size: 28px; -fx-font-weight: bold;" text="0.00 TL" />
+
+        <Label style="-fx-text-fill: #c0c0f0; -fx-font-size: 16px; -fx-font-weight: bold;" text="Oyun Hakkında" />
+
+        <Label fx:id="summaryLabel" maxWidth="550.0" style="-fx-text-fill: #a0a0c0; -fx-font-size: 14px; -fx-line-spacing: 5px;" text="Oyun hikayesi ve özeti buraya gelecek..." wrapText="true" VBox.vgrow="ALWAYS" />
+
+        <!-- Boşluk bırakmak için -->
+        <VBox prefHeight="30.0" />
+
+        <HBox spacing="20.0">
+            <Button fx:id="addToCartButton" onAction="#handleAddToCart" prefHeight="45.0" prefWidth="200.0" styleClass="btn-primary" text="Sepete Ekle" />
+            <Button onAction="#handleBackToStore" prefHeight="45.0" prefWidth="150.0" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;" text="Mağazaya Dön" />
+        </HBox>
+
+    </VBox>
+
+</HBox>

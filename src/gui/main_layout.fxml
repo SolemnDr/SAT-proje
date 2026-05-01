@@ -4,10 +4,19 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane prefHeight="720.0" prefWidth="1280.0" styleClass="root-pane" stylesheets="@/style/dark.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainController">
+
+    <!-- ÜST BAR (Sepet Bilgisi) -->
+    <top>
+        <HBox alignment="CENTER_RIGHT" prefHeight="60.0" spacing="15.0" style="-fx-background-color: #12122a; -fx-padding: 0 30 0 0; -fx-border-color: #2a2a5a; -fx-border-width: 0 0 1 0;">
+            <Label fx:id="cartInfoLabel" style="-fx-text-fill: #e0e0ff; -fx-font-size: 14px; -fx-font-weight: bold;" text="Sepet: 0 Ürün (0.00 TL)" />
+            <Button onAction="#showCartPage" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 15;" text="🛒 Sepete Git" />
+        </HBox>
+    </top>
 
     <!-- SOL MENÜ (Sidebar) -->
     <left>
@@ -25,7 +34,7 @@
         </VBox>
     </left>
 
-    <!-- ORTA DİNAMİK ALAN (İçerik buraya yüklenecek) -->
+    <!-- ORTA DİNAMİK ALAN -->
     <center>
         <StackPane fx:id="contentArea" style="-fx-background-color: #1a1a2e;" />
     </center>

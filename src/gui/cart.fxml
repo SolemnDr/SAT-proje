@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="720.0" prefWidth="1030.0" spacing="20.0" style="-fx-background-color: #1a1a2e; -fx-padding: 40;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.CartController">
+
+    <!-- Üst Başlık -->
+    <Label style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" text="Sepetim" />
+
+    <!-- Sepetteki Oyunların Listeleneceği Alan -->
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #1a1a2e;" VBox.vgrow="ALWAYS">
+        <VBox fx:id="cartItemsContainer" spacing="15.0" style="-fx-background-color: #1a1a2e;">
+            <!-- Oyunlar buraya kod ile eklenecek -->
+        </VBox>
+    </ScrollPane>
+
+    <!-- Alt Kısım: Toplam Tutar ve Satın Al Butonu -->
+    <HBox alignment="CENTER_RIGHT" spacing="30.0" style="-fx-background-color: #12122a; -fx-padding: 20; -fx-background-radius: 10;">
+        <Label style="-fx-text-fill: #a0a0c0; -fx-font-size: 20px;" text="Toplam Tutar:" />
+        <Label fx:id="totalPriceLabel" style="-fx-text-fill: #4caf50; -fx-font-size: 28px; -fx-font-weight: bold;" text="0.00 TL" />
+        <Button onAction="#handleCheckout" prefHeight="50.0" prefWidth="200.0" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="SATIN AL" />
+    </HBox>
+
+</VBox>
