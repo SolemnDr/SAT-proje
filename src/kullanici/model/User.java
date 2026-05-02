@@ -5,7 +5,6 @@ public class User {
     private String username;
     private String email;
     private String passwordHash;
-    private UserRole role;
     private String avatarPath;
 
     public int getId() { return id; }
@@ -20,14 +19,11 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
-    public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
-
     public String getAvatarPath() { return avatarPath; }
     public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
 
     @Override
     public String toString() {
-        return " 👤  " + username; // Listede ismin başında küçük bir ikonla şık durur
+        return " 👤  " + username;
     }
 }

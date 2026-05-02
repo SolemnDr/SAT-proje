@@ -172,23 +172,52 @@ public class PaymentController {
         errorLabel.setText("Ödeme işleniyor, lütfen bekleyin...");
 
         try {
-            // HARDCODED "1" SİLİNDİ, YERİNE SESSION MANAGER EKLENDİ!
+            // Başarılı ödeme bloğu - try içindeki mevcut kodu tamamen şununla değiştir:
             int currentUserId = util.Session.getCurrentUserId();
-
             gameService.purchaseCart(currentUserId, number);
-
-            // Arayüzün geçici sepet hafızasını temizle
             CartService.clearCart();
 
-            // Ana ekrandaki üst barı sıfırla ("0 Ürün")
             if (MainController.instance != null) {
                 MainController.instance.resetCartUI();
             }
 
-            errorLabel.setStyle("-fx-text-fill: #4caf50;");
-            errorLabel.setText("✅ Ödeme Başarılı! Oyunlar kütüphanenize eklendi.");
+// Mevcut ekranı "Tamamlandı" görünümüne çevir
             payButton.setDisable(true);
-            payButton.setText("İŞLEM TAMAMLANDI");
+            payButton.setVisible(false);
+
+            cardNameField.setDisable(true);
+            cardNumberField.setDisable(true);
+            expiryField.setDisable(true);
+            cvvField.setDisable(true);
+
+            errorLabel.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 16px; -fx-font-weight: bold;");
+            errorLabel.setText("✅ Ödeme Başarılı!\nOyunlar kütüphanenize eklendi.");
+
+// Geri dön butonu oluştur
+            javafx.scene.control.Button backBtn = new javafx.scene.control.Button("🏠 Ana Sayfaya Dön");
+            backBtn.setStyle("-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; "
+                    + "-fx-font-size: 15px; -fx-padding: 12 30; -fx-background-radius: 8; -fx-cursor: hand;");
+            backBtn.setMaxWidth(Double.MAX_VALUE);
+            backBtn.setOnAction(ev -> {
+                try {
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                            getClass().getResource("store.fxml"));
+                    javafx.scene.Node storePage = loader.load();
+                    javafx.scene.layout.StackPane contentArea =
+                            (javafx.scene.layout.StackPane) errorLabel.getScene().lookup("#contentArea");
+                    contentArea.getChildren().clear();
+                    contentArea.getChildren().add(storePage);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+
+// Butonu errorLabel'ın parent'ına ekle
+            javafx.scene.layout.VBox parent = (javafx.scene.layout.VBox) errorLabel.getParent();
+// Eski geri dön butonu varsa kaldır
+            parent.getChildren().removeIf(n -> "backBtn".equals(n.getUserData()));
+            backBtn.setUserData("backBtn");
+            parent.getChildren().add(backBtn);
 
         } catch (Exception e) {
             errorLabel.setStyle("-fx-text-fill: #ff4c4c;");

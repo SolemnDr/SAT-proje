@@ -1,7 +1,6 @@
 package kullanici.dao;
 
 import kullanici.model.User;
-import kullanici.model.UserRole;
 import util.DBConnection;
 
 import java.sql.*;
@@ -9,26 +8,21 @@ import java.util.Optional;
 
 public class UserDAO {
 
-    // 1. VERİTABANINA AVATAR SÜTUNUNU GÜVENLİCE EKLEYEN METOT (Uygulama başlarken 1 kez çalışsa yeter)
     public void upgradeTableForAvatars() {
-        String sql = "ALTER TABLE users ADD COLUMN avatar_path VARCHAR(255) DEFAULT NULL";
+        String sql = "ALTER TABLE users ADD COLUMN avatarPath VARCHAR(255) DEFAULT NULL";
         try (Statement stmt = DBConnection.get().createStatement()) {
             stmt.execute(sql);
-            System.out.println("Veritabanına profil fotoğrafı sütunu eklendi.");
-        } catch (SQLException e) {
-            // Sütun zaten varsa SQLite hata fırlatır, bu hatayı yutuyoruz (önemsiz).
+        } catch (SQLException ignored) {
         }
     }
 
     public void save(User user) throws SQLException {
-        // SQL Sorgusuna avatar_path eklendi
-        String sql = "INSERT INTO users (username, email, password_hash, role, avatar_path) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO users (username, email, passwordHash, avatarPath) VALUES (?,?,?,?)";
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setString(1, user.getUsername());
         ps.setString(2, user.getEmail());
         ps.setString(3, user.getPasswordHash());
-        ps.setString(4, user.getRole().name());
-        ps.setString(5, user.getAvatarPath()); // Yeni eklendi
+        ps.setString(4, user.getAvatarPath());
         ps.executeUpdate();
     }
 
@@ -58,9 +52,8 @@ public class UserDAO {
             u.setId(rs.getInt("id"));
             u.setUsername(rs.getString("username"));
             u.setEmail(rs.getString("email"));
-            u.setPasswordHash(rs.getString("password_hash"));
-            u.setRole(UserRole.valueOf(rs.getString("role")));
-            u.setAvatarPath(rs.getString("avatar_path")); // Yeni eklendi
+            u.setPasswordHash(rs.getString("passwordHash"));
+            u.setAvatarPath(rs.getString("avatarPath"));
             return Optional.of(u);
         }
         return Optional.empty();
@@ -73,10 +66,8 @@ public class UserDAO {
         return ps.executeQuery().next();
     }
 
-    // KULLANICININ FOTOĞRAFINI GÜNCELLEME METODU
-    // Tuğalp arayüzde "Profil Fotoğrafını Değiştir" butonuna basınca burası çalışacak.
     public boolean updateAvatar(int userId, String newAvatarPath) {
-        String sql = "UPDATE users SET avatar_path = ? WHERE id = ?";
+        String sql = "UPDATE users SET avatarPath = ? WHERE id = ?";
         try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
             ps.setString(1, newAvatarPath);
             ps.setInt(2, userId);

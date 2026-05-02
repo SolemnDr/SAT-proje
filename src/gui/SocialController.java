@@ -1,7 +1,9 @@
 package gui;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import kullanici.dao.UserDAO;
 import kullanici.model.User;
 import sosyal.dao.FriendDAO;
@@ -9,15 +11,35 @@ import sosyal.dao.MessageDAO;
 import util.Session;
 
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SocialController {
+
+    @FXML private VBox friendsMenuPane;
+    @FXML private VBox requestsMenuPane;
+    @FXML private VBox addFriendMenuPane;
+    @FXML private VBox profileMenuPane;
+    @FXML private VBox chatPane;
+
     @FXML private ListView<User> friendsListView;
-    @FXML private ListView<String> messagesListView;
-    @FXML private TextField messageInput;
-    @FXML private Label chatHeaderLabel;
     @FXML private ListView<User> requestsListView;
+    @FXML private ListView<String> messagesListView;
+
+    @FXML private TextField messageInput;
+    @FXML private TextField searchFriendInput;
+    @FXML private Label chatHeaderLabel;
+    @FXML private Label notificationBadge;
+    @FXML private Button notificationButton;
+
+    @FXML private Label profileUsernameLabel;
+    @FXML private Label profileEmailLabel;
 
     private FriendDAO friendDAO;
     private MessageDAO messageDAO;
@@ -27,238 +49,344 @@ public class SocialController {
 
     @FXML
     public void initialize() {
-        // 1. Nesneleri ve Session'ı kur
         friendDAO = new FriendDAO();
         messageDAO = new MessageDAO();
         userDAO = new UserDAO();
-        currentUserId = util.Session.getCurrentUserId();
+        currentUserId = Session.getCurrentUserId();
 
-        // 2. Listelerin stilini mor tema yap
-        String listStyle = "-fx-background-color: #1a1a2e; " +
-                "-fx-control-inner-background: #1a1a2e; " +
-                "-fx-background-radius: 10; " +
-                "-fx-border-color: #5352ed; " +
-                "-fx-border-radius: 10; " +
-                "-fx-font-family: 'Segoe UI'; " +
-                "-fx-font-weight: bold; " +
-                "-fx-text-fill: white;";
+        String listStyle = "-fx-background-color: #1a1a2e; -fx-control-inner-background: #1a1a2e;"
+                + "-fx-background-radius: 10; -fx-border-color: #5352ed; -fx-border-radius: 10;"
+                + "-fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-text-fill: white;";
 
-        friendsListView.setStyle(listStyle);
-        messagesListView.setStyle(listStyle);
+        if (friendsListView  != null) friendsListView.setStyle(listStyle);
+        if (messagesListView != null) messagesListView.setStyle(listStyle);
+        if (requestsListView != null) requestsListView.setStyle(listStyle);
 
-        // 3. Önce veritabanından gerçek arkadaşları yükle
+        if (notificationBadge != null) notificationBadge.setVisible(false);
+
+        showLeftPane(friendsMenuPane);
+        setupFriendsListCellFactory();
+        setupRequestsListCellFactory();
         loadFriends();
         loadRequests();
 
-        // 5. Arkadaş seçildiğinde yapılacak işlem
-        friendsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                selectedFriend = newVal;
-                chatHeaderLabel.setText(selectedFriend.getUsername() + " ile Sohbet");
-                loadMessages();
+        if (friendsListView != null) {
+            friendsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    selectedFriend = newVal;
+                    if (chatHeaderLabel != null)
+                        chatHeaderLabel.setText(selectedFriend.getUsername() + " ile Sohbet");
+                    loadMessages();
+                }
+            });
+        }
+    }
+
+    private void showLeftPane(VBox paneToShow) {
+        VBox[] leftPanes = { friendsMenuPane, requestsMenuPane, addFriendMenuPane, profileMenuPane };
+        for (VBox pane : leftPanes) {
+            if (pane != null) {
+                boolean show = pane == paneToShow;
+                pane.setVisible(show);
+                pane.setManaged(show);
+            }
+        }
+    }
+
+    @FXML private void handleOpenRequests()   { loadRequests(); showLeftPane(requestsMenuPane); }
+    @FXML private void handleOpenAddFriend()  { showLeftPane(addFriendMenuPane); }
+    @FXML private void handleBackToFriends()  { loadFriends(); showLeftPane(friendsMenuPane); }
+    @FXML private void handleBackFromProfile(){ showLeftPane(friendsMenuPane); }
+
+    // ── Arkadaş listesi hücreleri ─────────────────────────────────────────
+
+    private void setupFriendsListCellFactory() {
+        if (friendsListView == null) return;
+        friendsListView.setCellFactory(param -> new ListCell<User>() {
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setText(null); setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    HBox hbox = new HBox(10);
+                    hbox.setAlignment(Pos.CENTER_LEFT);
+
+                    Label nameLabel = new Label("⭐ " + user.getUsername().toUpperCase());
+                    nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    MenuButton optionsButton = new MenuButton("⋮");
+                    optionsButton.setStyle(
+                            "-fx-background-color: transparent; -fx-text-fill: white;"
+                                    + "-fx-font-weight: bold; -fx-font-size: 16px; -fx-cursor: hand;");
+
+                    // Menü item'leri beyaz yazı renginde
+                    MenuItem viewProfileItem = new MenuItem("Profili Görüntüle");
+                    viewProfileItem.setStyle("-fx-text-fill: white; -fx-background-color: #2a2a4a;");
+                    viewProfileItem.setOnAction(e -> openProfilePage(user));
+
+                    MenuItem removeFriendItem = new MenuItem("Arkadaşı Sil");
+                    removeFriendItem.setStyle("-fx-text-fill: white; -fx-background-color: #2a2a4a;");
+                    removeFriendItem.setOnAction(e -> handleRemoveFriendAction(user));
+
+                    // Menü arkaplanı koyu
+                    optionsButton.setPopupSide(javafx.geometry.Side.BOTTOM);
+                    optionsButton.getItems().addAll(viewProfileItem, removeFriendItem);
+                    optionsButton.getStylesheets().add(
+                            "data:text/css,.menu-button .context-menu{-fx-background-color:#2a2a4a;}"
+                                    + ".menu-button .menu-item:focused{-fx-background-color:#3a3a6a;}"
+                                    + ".menu-button .label{-fx-text-fill:white;}");
+
+                    hbox.getChildren().addAll(nameLabel, spacer, optionsButton);
+                    setGraphic(hbox);
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                }
             }
         });
     }
 
+    // ── İstek listesi hücreleri (kabul/reddet satır içinde) ───────────────
+
+    private void setupRequestsListCellFactory() {
+        if (requestsListView == null) return;
+        requestsListView.setCellFactory(param -> new ListCell<User>() {
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setText(null); setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    HBox hbox = new HBox(8);
+                    hbox.setAlignment(Pos.CENTER_LEFT);
+                    hbox.setPadding(new javafx.geometry.Insets(4, 6, 4, 6));
+
+                    Label nameLabel = new Label("👤 " + user.getUsername());
+                    nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    Button acceptBtn = new Button("✔");
+                    acceptBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white;"
+                            + "-fx-font-weight: bold; -fx-cursor: hand;"
+                            + "-fx-background-radius: 5; -fx-padding: 4 8;");
+                    acceptBtn.setOnAction(e -> {
+                        boolean ok = friendDAO.acceptFriendRequest(user.getId(), currentUserId);
+                        if (ok) { loadRequests(); loadFriends(); }
+                    });
+
+                    Button rejectBtn = new Button("✖");
+                    rejectBtn.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white;"
+                            + "-fx-font-weight: bold; -fx-cursor: hand;"
+                            + "-fx-background-radius: 5; -fx-padding: 4 8;");
+                    rejectBtn.setOnAction(e -> {
+                        boolean ok = friendDAO.removeFriend(currentUserId, user.getId());
+                        if (ok) loadRequests();
+                    });
+
+                    hbox.getChildren().addAll(nameLabel, spacer, acceptBtn, rejectBtn);
+                    setGraphic(hbox);
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                }
+            }
+        });
+    }
+
+    // ── Veri yükleme ──────────────────────────────────────────────────────
+
     private void loadFriends() {
+        if (friendsListView == null) return;
         friendsListView.getItems().clear();
         try {
             List<User> friends = friendDAO.getFriendsList(currentUserId);
-            if (friends != null) {
-                friendsListView.getItems().addAll(friends);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            if (friends != null) friendsListView.getItems().addAll(friends);
+        } catch (SQLException e) { e.printStackTrace(); }
     }
+
     private void loadRequests() {
         if (requestsListView == null) return;
         requestsListView.getItems().clear();
         try {
-            // Sizin DAO'daki metot!
             List<User> requests = friendDAO.getPendingRequests(currentUserId);
-            if (requests != null) {
-                requestsListView.getItems().addAll(requests);
+            boolean hasRequests = requests != null && !requests.isEmpty();
+            if (hasRequests) requestsListView.getItems().addAll(requests);
+
+            // Bildirim: istek varsa 🔔 → 🔔● (nokta görünür), yoksa normal
+            if (notificationBadge != null) {
+                notificationBadge.setVisible(hasRequests);
+                notificationBadge.setManaged(hasRequests);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ── Arkadaş silme ─────────────────────────────────────────────────────
+
+    private void handleRemoveFriendAction(User userToRemove) {
+        if (userToRemove == null) return;
+        boolean success = friendDAO.removeFriend(currentUserId, userToRemove.getId());
+        if (success) {
+            loadFriends();
+            if (selectedFriend != null && selectedFriend.getId() == userToRemove.getId()) {
+                selectedFriend = null;
+                if (messagesListView != null) messagesListView.getItems().clear();
+                if (chatHeaderLabel != null)  chatHeaderLabel.setText("Sohbet");
+            }
         }
     }
 
-    @FXML
-    private void handleAcceptRequest() {
-        User selectedRequest = requestsListView.getSelectionModel().getSelectedItem();
-        if (selectedRequest != null) {
-            // Sizin DAO'daki acceptFriendRequest metodu!
-            boolean success = friendDAO.acceptFriendRequest(selectedRequest.getId(), currentUserId);
-            if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Kabul Edildi", selectedRequest.getUsername() + " artık arkadaşın!");
-                loadRequests();
-                loadFriends();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Hata", "İstek kabul edilemedi.");
-            }
-        } else {
-            showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen kabul etmek için bir istek seçin.");
+    // ── Profil sayfası ────────────────────────────────────────────────────
+
+    private void openProfilePage(User user) {
+        if (profileUsernameLabel != null)
+            profileUsernameLabel.setText("🎮 " + user.getUsername().toUpperCase());
+        if (profileEmailLabel != null)
+            profileEmailLabel.setText("E-posta: " + (user.getEmail() != null ? user.getEmail() : "Gizli"));
+
+        // Eski oyun listesini temizle
+        if (profileMenuPane != null) {
+            profileMenuPane.getChildren().removeIf(n -> "friendGames".equals(n.getUserData()));
         }
+
+        // Arkadaşın oyunlarını yükle
+        loadFriendGames(user);
+
+        showLeftPane(profileMenuPane);
     }
 
-    @FXML
-    private void handleRejectRequest() {
-        User selectedRequest = requestsListView.getSelectionModel().getSelectedItem();
-        if (selectedRequest != null) {
-            // Sizin DAO'daki removeFriend metodu!
-            boolean success = friendDAO.removeFriend(currentUserId, selectedRequest.getId());
-            if (success) {
-                loadRequests();
-            }
-        } else {
-            showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen reddetmek için bir istek seçin.");
-        }
-    }
+    private void loadFriendGames(User user) {
+        if (profileMenuPane == null) return;
 
-    private void loadMessages() {
-        messagesListView.getItems().clear();
-        if (selectedFriend == null) return;
+        Label gamesTitle = new Label("🎮 Sahip Olduğu Oyunlar");
+        gamesTitle.setStyle("-fx-text-fill: #a0a0ff; -fx-font-weight: bold; -fx-font-size: 13px;");
+        gamesTitle.setUserData("friendGames");
+
+        ListView<String> gamesList = new ListView<>();
+        gamesList.setUserData("friendGames");
+        gamesList.setPrefHeight(200);
+        gamesList.setStyle("-fx-background-color: #1a1a2e; -fx-control-inner-background: #1a1a2e;"
+                + "-fx-border-color: #5352ed; -fx-border-radius: 8; -fx-background-radius: 8;"
+                + "-fx-text-fill: white;");
 
         try {
-            List<String> history = messageDAO.getConversation(currentUserId, selectedFriend.getId());
-            if (history == null || history.isEmpty()) {
-                messagesListView.getItems().add("Sistem: Henüz bir mesaj yok.");
-                return;
-            }
+            magaza.service.GameService gameService = new magaza.service.GameService();
+            java.util.List<magaza.model.Game> games = gameService.getPurchasedGames(user.getId());
 
-            // Tarih ve Saat Formatı (Örn: 01 Mayıs 2026 | 21:30)
-            java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy | HH:mm");
-            java.time.LocalDateTime sonEtiketZamani = null;
-
-            for (String msg : history) {
-                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\[(.*?)\\]");
-                java.util.regex.Matcher matcher = pattern.matcher(msg);
-
-                if (matcher.find()) {
-                    String zamanStr = matcher.group(1);
-
-                    // UTC'den Yerel Saate Çeviri (3 saat farkı kapatır)
-                    java.time.LocalDateTime utcZamani = java.time.LocalDateTime.parse(zamanStr,
-                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-                    java.time.LocalDateTime mesajZamani = utcZamani.atZone(java.time.ZoneId.of("UTC"))
-                            .withZoneSameInstant(java.time.ZoneId.systemDefault())
-                            .toLocalDateTime();
-
-                    // --- 5 DAKİKA KONTROLÜ ---
-                    // Eğer bu ilk mesajsa VEYA son etiketten itibaren 5 dakika geçmişse YENİ ETİKET AT
-                    if (sonEtiketZamani == null || java.time.Duration.between(sonEtiketZamani, mesajZamani).toMinutes() >= 5) {
-                        String ayirici = "─────────  " + mesajZamani.format(dtf) + "  ─────────";
-                        messagesListView.getItems().add(ayirici);
-                        sonEtiketZamani = mesajZamani; // Son etiket zamanını güncelle
-                    }
+            if (games == null || games.isEmpty()) {
+                gamesList.getItems().add("Bu kullanıcının henüz oyunu yok.");
+            } else {
+                for (magaza.model.Game g : games) {
+                    gamesList.getItems().add("🎯 " + g.getName()
+                            + "  —  " + String.format(java.util.Locale.US, "%.2f TL", g.getPrice()));
                 }
-
-                // Mesajın başındaki [tarih] kalabalığını siler
-                String temizMesaj = msg.replaceAll("^\\[.*?\\]\\s*", "");
-                messagesListView.getItems().add(temizMesaj);
             }
-
-            messagesListView.scrollTo(messagesListView.getItems().size() - 1);
-
         } catch (Exception e) {
+            gamesList.getItems().add("Oyunlar yüklenirken hata oluştu.");
             e.printStackTrace();
         }
+
+        profileMenuPane.getChildren().addAll(gamesTitle, gamesList);
+    }
+    // ── Mesajlar ──────────────────────────────────────────────────────────
+
+    private void loadMessages() {
+        if (messagesListView == null) return;
+        messagesListView.getItems().clear();
+        if (selectedFriend == null) return;
+        try {
+            List<String> history = messageDAO.getConversation(currentUserId, selectedFriend.getId());
+            if (history == null || history.isEmpty()) return;
+
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMMM yyyy | HH:mm");
+            LocalDateTime sonEtiketZamani = null;
+
+            for (String msg : history) {
+                Matcher matcher = Pattern.compile("\\[(.*?)\\]").matcher(msg);
+                if (matcher.find()) {
+                    LocalDateTime utc = LocalDateTime.parse(matcher.group(1),
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    LocalDateTime local = utc.atZone(ZoneId.of("UTC"))
+                            .withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                    if (sonEtiketZamani == null || Duration.between(sonEtiketZamani, local).toMinutes() >= 5) {
+                        messagesListView.getItems().add("─────────  " + local.format(dtf) + "  ─────────");
+                        sonEtiketZamani = local;
+                    }
+                }
+                messagesListView.getItems().add(msg.replaceAll("^\\[.*?\\]\\s*", ""));
+            }
+            messagesListView.scrollTo(messagesListView.getItems().size() - 1);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     private void handleSendMessage() {
+        if (messageInput == null) return;
         String text = messageInput.getText().trim();
         if (!text.isEmpty() && selectedFriend != null) {
             try {
-                // 1. Önce veritabanına kaydet
-                boolean success = messageDAO.sendMessage(currentUserId, selectedFriend.getId(), text);
-
-                if (success) {
+                if (messageDAO.sendMessage(currentUserId, selectedFriend.getId(), text)) {
                     messageInput.clear();
-                    // 2. KRİTİK DÜZELTME: Ekranı elle güncellemek yerine loadMessages'ı çağır
-                    // Böylece 10 dakika geçmişse o meşhur "zaman çizgisi" anında belirir.
                     loadMessages();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Hata", "Mesaj gönderilemedi.");
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
     @FXML
-    private void handleAddFriend() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("GameStore | Sosyal");
-        dialog.setHeaderText("🎮 Oyuncu Ara & Ekle");
-        dialog.setGraphic(null); // Soru işaretini kaldırır
+    private void handleExecuteAddFriend() {
+        if (searchFriendInput == null) return;
+        String username = searchFriendInput.getText().trim();
+        if (username.isEmpty()) return;
 
-        DialogPane pane = dialog.getDialogPane();
-
-        // Mor tema ve beyaz başlık yazısı
-        pane.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #5352ed; -fx-border-width: 2;");
-        pane.lookup(".header-panel").setStyle("-fx-background-color: #1a1a2e;");
-
-        pane.lookup(".header-panel").lookup(".label").setStyle("-fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 16px;");
-        pane.lookup(".content.label").setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-
-        // Giriş kutusu (Beyaz yazı)
-        dialog.getEditor().setStyle("-fx-background-color: #2a2a4a; -fx-text-fill: white; -fx-font-weight: bold;");
-
-        // Butonlar
-        Button okButton = (Button) pane.lookupButton(ButtonType.OK);
-        okButton.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold;");
-
-        Optional<String> result = dialog.showAndWait();
-
-        if (result.isPresent()) {
-            String username = result.get().trim();
-            if (!username.isEmpty()) {
-                try {
-                    Optional<User> userOpt = userDAO.findByUsername(username);
-                    if (userOpt.isPresent()) {
-                        User newFriend = userOpt.get();
-                        if (newFriend.getId() == currentUserId) {
-                            showAlert(Alert.AlertType.WARNING, "Uyarı", "Kendini arkadaş olarak ekleyemezsin!");
-                            return;
-                        }
-                        boolean success = friendDAO.sendFriendRequest(currentUserId, newFriend.getId());
-                        if (success) {
-                            showAlert(Alert.AlertType.INFORMATION, "Başarılı", username + " kullanıcısına istek gönderildi.");
-                        } else {
-                            showAlert(Alert.AlertType.WARNING, "Uyarı", "Bu kişiyle zaten bağlantınız var.");
-                        }
-                    } else {
-                        // Yanlış isim girince hata verme kısmı
-                        showAlert(Alert.AlertType.ERROR, "Oyuncu Bulunamadı", "Girdiğiniz '" + username + "' kullanıcı adıyla eşleşen bir oyuncu yok.");
-                    }
-                } catch (Exception e) {
-                    showAlert(Alert.AlertType.ERROR, "Sistem Hatası", "Bir hata oluştu.");
+        try {
+            Optional<User> userOpt = userDAO.findByUsername(username);
+            if (userOpt.isPresent()) {
+                User newFriend = userOpt.get();
+                if (newFriend.getId() == currentUserId) {
+                    showFeedback("Kendinize istek gönderemezsiniz.", "#ff4c4c");
+                    return;
                 }
+                friendDAO.sendFriendRequest(currentUserId, newFriend.getId());
+                searchFriendInput.clear();
+                showFeedback("İstek gönderildi! ✔", "#4caf50");
+            } else {
+                showFeedback("Kullanıcı bulunamadı.", "#ff4c4c");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showFeedback("Bir hata oluştu.", "#ff4c4c");
         }
     }
 
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle("GameStore | " + title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.setGraphic(null);
+    private void showFeedback(String message, String color) {
+        // addFriendMenuPane içine geçici bir label ekle
+        if (addFriendMenuPane == null) return;
 
-        DialogPane pane = alert.getDialogPane();
-        pane.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #5352ed; -fx-border-width: 2;");
+        // Eski feedback label'ı varsa kaldır
+        addFriendMenuPane.getChildren().removeIf(
+                node -> "feedbackLabel".equals(node.getUserData())
+        );
 
-        pane.lookupAll(".label").forEach(node ->
-                node.setStyle("-fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold;"));
+        Label feedback = new Label(message);
+        feedback.setUserData("feedbackLabel");
+        feedback.setStyle("-fx-text-fill: " + color + "; -fx-font-weight: bold; -fx-font-size: 13px;");
+        addFriendMenuPane.getChildren().add(feedback);
 
-        Button okButton = (Button) pane.lookupButton(ButtonType.OK);
-        okButton.setStyle("-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold;");
-
-        alert.showAndWait();
+        // 3 saniye sonra otomatik kaybol
+        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
+                javafx.util.Duration.seconds(3)
+        );
+        pause.setOnFinished(e -> addFriendMenuPane.getChildren().remove(feedback));
+        pause.play();
     }
+
+    // Artık kullanılmıyor ama FXML'den referans gelebilir diye bırakıldı
+    @FXML private void handleAcceptRequest() {}
+    @FXML private void handleRejectRequest() {}
 }

@@ -2,7 +2,6 @@ package kullanici.service;
 
 import kullanici.dao.UserDAO;
 import kullanici.model.User;
-import kullanici.model.UserRole;
 import util.PasswordUtil;
 
 import java.sql.SQLException;
@@ -21,7 +20,7 @@ public class AuthService {
         WEAK_PASSWORD
     }
 
-    public AuthResult register(String username, String email, String password, UserRole role) {
+    public AuthResult register(String username, String email, String password) {
         if (password == null || password.trim().length() < 6) {
             return AuthResult.WEAK_PASSWORD;
         }
@@ -33,7 +32,6 @@ public class AuthService {
             u.setUsername(username);
             u.setEmail(email);
             u.setPasswordHash(PasswordUtil.hash(password));
-            u.setRole(role);
 
             userDAO.save(u);
             return AuthResult.SUCCESS;

@@ -18,20 +18,17 @@ public class LibraryController {
 
     @FXML
     public void initialize() {
-        // Oturumdaki gerçek kullanıcı ID'sini al
         int currentUserId = util.Session.getCurrentUserId();
-
         try {
-            // Veritabanından bu kullanıcının SATIN ALDIĞI oyunları çek
-            List<Game> myGames = gameService.getPurchasedGames(currentUserId);
+            kutuphane.dao.LibraryDAO libDAO = new kutuphane.dao.LibraryDAO();
+            libDAO.createTablesIfNotExists();
+            List<magaza.model.Game> myGames = libDAO.getVisibleLibrary(currentUserId);
 
             if (myGames != null && !myGames.isEmpty()) {
-                // Oyun varsa ekrana diz
                 renderGames(myGames);
             } else {
-                // Kütüphane boşsa şık bir uyarı göster
                 gamesGrid.getChildren().clear();
-                Label emptyLabel = new Label("Kütüphanenizde henüz oyun bulunmuyor. Mağazaya göz atıp maceralara atılabilirsiniz!");
+                Label emptyLabel = new Label("Kütüphanenizde henüz oyun bulunmuyor.");
                 emptyLabel.setStyle("-fx-text-fill: #7a7a9a; -fx-font-size: 16px; -fx-font-style: italic;");
                 gamesGrid.getChildren().add(emptyLabel);
             }
@@ -68,8 +65,16 @@ public class LibraryController {
         iv.setPreserveRatio(true);
 
         // Background loading kasmayı engeller
-        Image img = new Image(game.getCoverUrl(), true);
-        iv.setImage(img);
+        String coverUrl = game.getCoverUrl();
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            if (coverUrl.startsWith("//")) coverUrl = "https:" + coverUrl;
+            coverUrl = coverUrl.replace("t_thumb", "t_cover_big");
+            try {
+                iv.setImage(new Image(coverUrl, true));
+            } catch (Exception ex) {
+                System.out.println("Resim yüklenemedi: " + game.getName());
+            }
+        }
 
         Label nameLabel = new Label(game.getName());
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");

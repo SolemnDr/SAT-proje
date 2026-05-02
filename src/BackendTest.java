@@ -4,7 +4,6 @@ import kutuphane.dao.LibraryDAO;
 import magaza.dao.ReviewDAO;
 import kullanici.dao.UserDAO;
 import kullanici.model.User;
-import kullanici.model.UserRole;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +35,6 @@ public class BackendTest {
                 testUser.setUsername("TestOyuncu");
                 testUser.setEmail("test@oyuncu.com");
                 testUser.setPasswordHash("123456"); // Normalde hashlenir, test için düz yazıyoruz
-                testUser.setRole(UserRole.valueOf("USER")); // Eğer UserRole enum'ında farklı bir isim varsa (örn: CUSTOMER), burayı ona göre değiştir.
                 userDAO.save(testUser);
             }
 

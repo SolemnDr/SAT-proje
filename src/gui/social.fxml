@@ -3,47 +3,115 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<!-- Ana Kapsayıcı: HBox ile yan yana iki modern panel -->
-<HBox spacing="25" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="gui.SocialController" style="-fx-background-color: transparent; -fx-padding: 20;">
+<HBox spacing="25"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gui.SocialController"
+      style="-fx-background-color: transparent; -fx-padding: 20;">
 
-    <!-- SOL PANEL: Gelen İstekler ve Arkadaş Listesi -->
-    <VBox spacing="15" prefWidth="320" style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
+    <StackPane prefWidth="320">
 
-        <!-- YENİ EKLENEN: Gelen İstekler Bölümü (Koyu Arka Planlı Kutu) -->
-        <VBox spacing="10" style="-fx-background-color: #1a1a2e; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #5352ed; -fx-border-radius: 8; -fx-border-width: 1;">
-            <Label text="Gelen İstekler 🔔" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+        <!-- SAYFA 1: Arkadaş Listesi -->
+        <VBox fx:id="friendsMenuPane" spacing="15"
+              style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
 
-            <!-- İsteklerin Listesi (Kısa tutuldu ki ekranı kaplamasın) -->
-            <ListView fx:id="requestsListView" prefHeight="100" style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 5; -fx-border-color: #3a3a6a; -fx-border-radius: 5; -fx-text-fill: white;"/>
-
-            <!-- Kabul ve Reddet Butonları -->
-            <HBox spacing="10" alignment="CENTER">
-                <Button text="✔ Kabul Et" onAction="#handleAcceptRequest" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8; -fx-background-radius: 5;"/>
-                <Button text="✖ Reddet" onAction="#handleRejectRequest" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8; -fx-background-radius: 5;"/>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Arkadaşlar"
+                       style="-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: white;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <StackPane>
+                    <Button fx:id="notificationButton" text="🔔" onAction="#handleOpenRequests"
+                            style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 4;"/>
+                    <Label fx:id="notificationBadge" text="●"
+                           style="-fx-text-fill: #ff6b6b; -fx-font-size: 10px;"
+                           visible="false" managed="false"
+                           StackPane.alignment="TOP_RIGHT"
+                           translateX="4" translateY="-2"/>
+                </StackPane>
+                <Button text="➕" onAction="#handleOpenAddFriend"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 4;"/>
             </HBox>
+
+            <ListView fx:id="friendsListView" VBox.vgrow="ALWAYS"
+                      style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-text-fill: white;"/>
         </VBox>
 
-        <!-- MEVCUT: Arkadaşlar Bölümü -->
-        <Label text="Arkadaşlar" style="-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: white;"/>
-        <ListView fx:id="friendsListView" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-text-fill: white;"/>
+        <!-- SAYFA 2: Gelen İstekler -->
+        <VBox fx:id="requestsMenuPane" spacing="15" visible="false" managed="false"
+              style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
 
-        <!-- Arkadaş Ekle Butonu -->
-        <Button text="+ Arkadaş Ekle" maxWidth="Infinity" onAction="#handleAddFriend" style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"/>
-    </VBox>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Button text="&#8592; Geri" onAction="#handleBackToFriends"
+                        style="-fx-background-color: transparent; -fx-text-fill: #a0a0ff; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 4;"/>
+                <Label text="Gelen İstekler"
+                       style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+            </HBox>
 
-    <!-- SAĞ PANEL: Mesajlaşma Alanı -->
-    <VBox spacing="15" HBox.hgrow="ALWAYS" style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
-        <Label fx:id="chatHeaderLabel" text="Sohbet seçin..." style="-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: white;"/>
+            <ListView fx:id="requestsListView" VBox.vgrow="ALWAYS"
+                      style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-text-fill: white;"/>
 
-        <!-- Mesaj Geçmişi -->
-        <ListView fx:id="messagesListView" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-text-fill: white;"/>
+        </VBox>
 
-        <!-- Mesaj Yazma Alanı -->
+        <!-- SAYFA 3: Arkadaş Ekle -->
+        <VBox fx:id="addFriendMenuPane" spacing="15" visible="false" managed="false"
+              style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Button text="&#8592; Geri" onAction="#handleBackToFriends"
+                        style="-fx-background-color: transparent; -fx-text-fill: #a0a0ff; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 4;"/>
+                <Label text="Arkadaş Ekle"
+                       style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+            </HBox>
+
+            <TextField fx:id="searchFriendInput" promptText="Kullanıcı adı girin..."
+                       style="-fx-background-color: #12122a; -fx-text-fill: white; -fx-prompt-text-fill: #7a7a9a; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
+
+            <Button text="İstek Gönder" maxWidth="Infinity" onAction="#handleExecuteAddFriend"
+                    style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"/>
+        </VBox>
+
+        <!-- SAYFA 4: Profil -->
+        <!-- SAYFA 4: Profil -->
+        <VBox fx:id="profileMenuPane" spacing="15" visible="false" managed="false"
+              VBox.vgrow="ALWAYS"
+              style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Button text="&#8592; Geri" onAction="#handleBackFromProfile"
+                        style="-fx-background-color: transparent; -fx-text-fill: #a0a0ff; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 4;"/>
+                <Label text="Profil"
+                       style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+            </HBox>
+
+            <VBox spacing="12" alignment="CENTER"
+                  style="-fx-background-color: #1a1a2e; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #5352ed; -fx-border-radius: 10; -fx-border-width: 1;">
+                <Label text="👤" style="-fx-font-size: 48px;"/>
+                <Label fx:id="profileUsernameLabel" text=""
+                       style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
+                <Label fx:id="profileEmailLabel" text=""
+                       style="-fx-text-fill: #a0a0cc; -fx-font-size: 13px;"/>
+            </VBox>
+        </VBox>
+
+    </StackPane>
+
+    <!-- SAĞ PANEL: Sohbet -->
+    <VBox fx:id="chatPane" spacing="15" HBox.hgrow="ALWAYS"
+          style="-fx-background-color: #2a2a4a; -fx-padding: 20; -fx-background-radius: 12;">
+
+        <Label fx:id="chatHeaderLabel" text="Sohbet seçin..."
+               style="-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: white;"/>
+
+        <ListView fx:id="messagesListView" VBox.vgrow="ALWAYS"
+                  style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-text-fill: white;"/>
+
         <HBox spacing="15">
-            <TextField fx:id="messageInput" promptText="Mesajınızı yazın..." HBox.hgrow="ALWAYS" onAction="#handleSendMessage" style="-fx-background-color: #12122a; -fx-text-fill: white; -fx-prompt-text-fill: #7a7a9a; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-
-            <!-- Gönder Butonu (Yeşil) -->
-            <Button text="Gönder" onAction="#handleSendMessage" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 25; -fx-cursor: hand;"/>
+            <TextField fx:id="messageInput" promptText="Mesajınızı yazın..."
+                       HBox.hgrow="ALWAYS" onAction="#handleSendMessage"
+                       style="-fx-background-color: #12122a; -fx-text-fill: white; -fx-prompt-text-fill: #7a7a9a; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
+            <Button text="Gönder" onAction="#handleSendMessage"
+                    style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 25; -fx-cursor: hand;"/>
         </HBox>
     </VBox>
+
 </HBox>

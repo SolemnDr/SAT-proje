@@ -3,7 +3,6 @@ package sosyal.dao;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import kullanici.model.User;
-import kullanici.model.UserRole;
 import util.DBConnection;
 import util.Session;
 import java.sql.*;
@@ -90,7 +89,6 @@ public class FriendDAO {
             u.setId(rs.getInt("id"));
             u.setUsername(rs.getString("username"));
             u.setEmail(rs.getString("email"));
-            u.setRole(UserRole.valueOf(rs.getString("role")));
             pendingUsers.add(u);
         }
         return pendingUsers;
@@ -111,7 +109,6 @@ public class FriendDAO {
             u.setId(rs.getInt("id"));
             u.setUsername(rs.getString("username"));
             u.setEmail(rs.getString("email"));
-            u.setRole(UserRole.valueOf(rs.getString("role")));
             friends.add(u);
         }
         return friends;
@@ -147,7 +144,6 @@ public class FriendDAO {
                 u.setId(rs.getInt("id"));
                 u.setUsername(rs.getString("username"));
                 u.setEmail(rs.getString("email"));
-                u.setRole(UserRole.valueOf(rs.getString("role")));
                 friends.add(u);
             }
         } catch (SQLException e) {

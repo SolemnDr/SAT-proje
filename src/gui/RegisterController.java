@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import kullanici.model.UserRole;
 import kullanici.service.AuthService;
 
 public class RegisterController {
@@ -31,10 +30,7 @@ public class RegisterController {
             return;
         }
 
-        // KAPSAM DARALTMA: Kayıt olan herkes otomatik olarak 'USER' (Oyuncu) rolünü alır.
-        UserRole role = UserRole.USER;
-
-        AuthService.AuthResult result = authService.register(username, email, password, role);
+        AuthService.AuthResult result = authService.register(username, email, password);
 
         switch (result) {
             case SUCCESS -> goToLogin(); // kayıt başarılı, login'e dön

@@ -72,6 +72,15 @@ public class StoreController {
         // ARAMA VE VERİTABANI İŞLEMİNİ ARKA PLANA (Yeni Thread) ALIYORUZ Kİ EKRAN DONMASIN!
         new Thread(() -> {
             try {
+                try {
+                    List<Game> testList = gameService.getGamesByPage(1, 1);
+                    if (testList != null && !testList.isEmpty()) {
+                        System.out.println("TEST OYUN ADI: " + testList.get(0).getName());
+                        System.out.println("TEST COVER URL: " + testList.get(0).getCoverUrl());
+                    }
+                } catch (Exception ex) {
+                    System.out.println("TEST HATA: " + ex.getMessage());
+                }
                 // Türkçe karakter sorununu (FIFA/fıfa) çözen İngilizce küçültme
                 String searchText = searchField.getText().trim().toLowerCase(java.util.Locale.ENGLISH);
                 String selectedCategory = categoryBox.getValue();

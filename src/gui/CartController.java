@@ -23,62 +23,77 @@ public class CartController {
     @FXML private Label totalPriceLabel;
 
     private double currentTotal = 0.0;
-
     @FXML
     public void initialize() {
+        // Uygulama açılınca veritabanındaki sepeti RAM'e yükle
+        syncCartFromDB();
         loadCartItems();
     }
 
+    private void syncCartFromDB() {
+        int currentUserId = util.Session.getCurrentUserId();
+        String sql = "SELECT game_id FROM cart WHERE user_id = ?";
+        try (Connection conn = DBConnection.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, currentUserId);
+            ResultSet rs = ps.executeQuery();
+            util.CartService.clearCart();
+            while (rs.next()) {
+                util.CartService.addToCart(rs.getInt("game_id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     private void loadCartItems() {
         cartItemsContainer.getChildren().clear();
         currentTotal = 0.0;
 
-        List<Integer> gameIds = CartService.getCart();
+        int currentUserId = util.Session.getCurrentUserId();
 
-        // Eğer sepet boşsa
-        if (gameIds.isEmpty()) {
-            Label emptyLabel = new Label("Sepetiniz şu an boş. Mağazadan oyun ekleyebilirsiniz.");
-            emptyLabel.setStyle("-fx-text-fill: #6060a0; -fx-font-size: 18px;");
-            cartItemsContainer.getChildren().add(emptyLabel);
-            totalPriceLabel.setText("0.00 TL");
-
-            // Ana ekrandaki üst barı sıfırla
-            if (MainController.instance != null) {
-                MainController.instance.syncCartUI(0, 0.0);
-            }
-            return;
-        }
-
-        // Seçili oyunları veritabanından çekme sorgusu
-        String placeholders = String.join(",", java.util.Collections.nCopies(gameIds.size(), "?"));
-        String sql = "SELECT id, name, price, cover_url FROM games WHERE id IN (" + placeholders + ")";
+        // Sepeti RAM'den değil, doğrudan veritabanından çek
+        String sql = "SELECT g.id, g.name, g.price, g.cover_url " +
+                "FROM games g " +
+                "JOIN cart c ON g.id = c.game_id " +
+                "WHERE c.user_id = ?";
 
         try (Connection conn = DBConnection.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            for (int i = 0; i < gameIds.size(); i++) {
-                ps.setInt(i + 1, gameIds.get(i));
+            ps.setInt(1, currentUserId);
+            ResultSet rs = ps.executeQuery();
+
+            boolean hasItems = false;
+
+            while (rs.next()) {
+                hasItems = true;
+                int id       = rs.getInt("id");
+                String name  = rs.getString("name");
+                double price = rs.getDouble("price");
+                String cover = rs.getString("cover_url");
+
+                currentTotal += price;
+                cartItemsContainer.getChildren().add(createCartItemRow(id, name, price, cover));
+
+                // RAM'i de veritabanıyla senkronize et
+                if (!util.CartService.getCart().contains(id)) {
+                    util.CartService.addToCart(id);
+                }
             }
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                double price = rs.getDouble("price");
-                String coverUrl = rs.getString("cover_url");
-
-                currentTotal += price; // Toplam tutarı hesapla
-
-                // Her bir oyun için şık bir satır oluşturup ekrana bas
-                HBox itemRow = createCartItemRow(id, name, price, coverUrl);
-                cartItemsContainer.getChildren().add(itemRow);
+            if (!hasItems) {
+                Label emptyLabel = new Label("Sepetiniz şu an boş. Mağazadan oyun ekleyebilirsiniz.");
+                emptyLabel.setStyle("-fx-text-fill: #6060a0; -fx-font-size: 18px;");
+                cartItemsContainer.getChildren().add(emptyLabel);
+                totalPriceLabel.setText("0.00 TL");
+                if (MainController.instance != null) MainController.instance.syncCartUI(0, 0.0);
+                return;
             }
 
             totalPriceLabel.setText(String.format(java.util.Locale.US, "%.2f TL", currentTotal));
 
-            // Ana ekrandaki sağ üst barı (sayı ve fiyatı) anlık olarak senkronize et
             if (MainController.instance != null) {
-                MainController.instance.syncCartUI(gameIds.size(), currentTotal);
+                MainController.instance.syncCartUI(util.CartService.getCart().size(), currentTotal);
             }
 
         } catch (Exception e) {
