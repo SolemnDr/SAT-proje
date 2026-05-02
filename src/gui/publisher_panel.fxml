@@ -8,95 +8,68 @@
 <VBox spacing="20" style="-fx-background-color: #1a1a2e;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.PublisherPanelController">
     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-    <!-- Üst Başlık ve Çıkış Yap Butonu -->
+    <!-- Üst Başlık ve Çıkış Butonu -->
     <HBox alignment="CENTER_LEFT" spacing="20">
         <Label text="Yayıncı Yönetim Paneli" style="-fx-text-fill: white; -fx-font-size: 26; -fx-font-weight: bold;"/>
         <Region HBox.hgrow="ALWAYS" />
-        <Button text="Çıkış Yap" onAction="#handleLogout"
-                style="-fx-background-color: transparent; -fx-text-fill: #ff6060; -fx-border-color: #ff6060; -fx-border-radius: 8; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;"/>
+        <Button text="Çıkış Yap" onAction="#handleLogout" style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
     </HBox>
 
-    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: #1a1a2e;">
+    <!-- Sekmeler (ID eklendi) -->
+    <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: #1a1a2e;">
 
-        <!-- SEKME 1: OYUNLARIM VE İSTATİSTİKLER -->
+        <!-- SEKME 1: OYUNLARIM -->
         <Tab text="Oyunlarım ve İstatistikler" style="-fx-background-color: #2a2a5a; -fx-text-base-color: white;">
-            <VBox spacing="20" style="-fx-background-color: #1a1a2e;">
-                <padding><Insets top="20" right="15" bottom="15" left="15"/></padding>
+            <VBox spacing="15" style="-fx-background-color: #1a1a2e;">
+                <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
 
-                <!-- İstatistik Tablosu -->
-                <TableView fx:id="myGamesTable" VBox.vgrow="ALWAYS"
-                           style="-fx-background-color: #2a2a5a; -fx-control-inner-background: #2a2a5a; -fx-table-cell-border-color: #1a1a2e; -fx-background-radius: 10;">
+                <TableView fx:id="myGamesTable" VBox.vgrow="ALWAYS" style="-fx-background-color: #2a2a5a; -fx-control-inner-background: #2a2a5a; -fx-table-cell-border-color: #1a1a2e;">
                     <columns>
-                        <TableColumn fx:id="colName" text="Oyun Adı" prefWidth="280"/>
+                        <TableColumn fx:id="colName" text="Oyun Adı" prefWidth="250"/>
                         <TableColumn fx:id="colPrice" text="Fiyat (TL)" prefWidth="120"/>
                         <TableColumn fx:id="colSales" text="Satış Sayısı" prefWidth="120"/>
                         <TableColumn fx:id="colDiscount" text="İndirim %" prefWidth="100"/>
                     </columns>
                 </TableView>
 
-                <!-- Hızlı İşlem Paneli (Güzelleştirilen Kısım) -->
-                <HBox spacing="15" alignment="CENTER_LEFT"
-                      style="-fx-background-color: #2a2a5a; -fx-padding: 20; -fx-background-radius: 12; -fx-border-color: #5352ed; -fx-border-width: 0.5; -fx-border-radius: 12;">
-
-                    <VBox spacing="5">
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <TextField fx:id="discountField" prefWidth="160" promptText="Örn: 25"
-                                       style="-fx-background-color: #1a1a2e; -fx-text-fill: white; -fx-border-color: #5352ed; -fx-border-radius: 5; -fx-padding: 8;"/>
-                            <Button text="İndirimi Uygula" onAction="#handleApplyDiscount"
-                                    style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 5; -fx-cursor: hand;"/>
-                        </HBox>
-                    </VBox>
-
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="discountField" promptText="İndirim % (Örn: 20)" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 8; -fx-background-radius: 5;"/>
+                    <Button text="İndirim Uygula" onAction="#handleApplyDiscount" style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
                     <Region HBox.hgrow="ALWAYS" />
 
-                    <VBox spacing="5" alignment="CENTER_RIGHT">
-                        <Button text="Seçili Oyunu Kaldır" onAction="#handleDeleteGame"
-                                style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 18; -fx-background-radius: 5; -fx-cursor: hand;"/>
-                    </VBox>
+                    <!-- YENİ EKLENEN DÜZENLE BUTONU -->
+                    <Button text="Seçiliyi Düzenle" onAction="#handleEditSelectedGame" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
+
+                    <Button text="Seçiliyi Sil" onAction="#handleDeleteGame" style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
                 </HBox>
             </VBox>
         </Tab>
 
-        <!-- SEKME 2: YENİ OYUN EKLE -->
-        <Tab text="Yeni Oyun Yükle" style="-fx-background-color: #2a2a5a; -fx-text-base-color: white;">
+        <!-- SEKME 2: YENİ OYUN EKLE / DÜZENLE (ID eklendi) -->
+        <Tab fx:id="addEditTab" text="Yeni Oyun Yükle" style="-fx-background-color: #2a2a5a; -fx-text-base-color: white;">
             <ScrollPane fitToWidth="true" style="-fx-background-color: #1a1a2e; -fx-background: #1a1a2e; -fx-border-color: transparent;">
-                <VBox spacing="15" maxWidth="650" style="-fx-background-color: #1a1a2e;">
-                    <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+                <VBox spacing="15" maxWidth="600" style="-fx-background-color: #1a1a2e;">
+                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-                    <VBox spacing="8">
-                        <Label text="Oyun Adı" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
-                        <TextField fx:id="newNameField" promptText="Oyunun tam adını girin..."
-                                   style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-                    </VBox>
+                    <Label text="Oyun Adı" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newNameField" promptText="Oyunun tam adını girin..." style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <HBox spacing="20">
-                        <VBox spacing="8" HBox.hgrow="ALWAYS">
-                            <Label text="Fiyat (TL)" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
-                            <TextField fx:id="newPriceField" promptText="Örn: 499.99"
-                                       style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-                        </VBox>
-                        <VBox spacing="8" HBox.hgrow="ALWAYS">
-                            <Label text="Kategoriler" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
-                            <TextField fx:id="newGenresField" promptText="Aksiyon, RPG..."
-                                       style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-                        </VBox>
-                    </HBox>
+                    <Label text="Fiyat (TL)" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newPriceField" promptText="Örn: 499.99" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <VBox spacing="8">
-                        <Label text="Kapak Fotoğrafı URL" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
-                        <TextField fx:id="newCoverUrlField" promptText="https://images.igdb.com/..."
-                                   style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-padding: 12; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-                    </VBox>
+                    <Label text="Kategoriler (Virgülle ayırın)" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newGenresField" promptText="Aksiyon, RPG, Strateji..." style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <VBox spacing="8">
-                        <Label text="Oyun Özeti" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
-                        <TextArea fx:id="newSummaryArea" prefHeight="150" promptText="Oyununuzu çekici kılacak bir özet yazın..."
-                                  style="-fx-control-inner-background: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-                    </VBox>
+                    <Label text="Kapak Fotoğrafı URL" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newCoverUrlField" promptText="https://ornek.com/resim.jpg" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <Button text="OYUNU MAĞAZADA YAYINLA" onAction="#handleAddGame" maxWidth="Infinity"
-                            style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 18; -fx-font-size: 16; -fx-background-radius: 10; -fx-cursor: hand;">
-                        <VBox.margin><Insets top="15"/></VBox.margin>
+                    <Label text="Oyun Özeti" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextArea fx:id="newSummaryArea" prefHeight="120" promptText="Oyununuzu çekici kılacak bir özet yazın..." style="-fx-control-inner-background: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0;"/>
+
+                    <!-- BUTON ID'Sİ VE METODU GÜNCELLENDİ -->
+                    <Button fx:id="submitGameBtn" text="Oyunu Mağazada Yayınla" onAction="#handleSubmitGame" prefWidth="600"
+                            style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 15; -fx-font-size: 16; -fx-background-radius: 8; -fx-cursor: hand;">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
                     </Button>
                 </VBox>
             </ScrollPane>
