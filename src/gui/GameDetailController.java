@@ -26,6 +26,7 @@ public class GameDetailController {
     @FXML private ListView<String> reviewsListView;
     @FXML private TextField reviewInput;
     @FXML private ComboBox<Integer> ratingComboBox;
+    @FXML private Label averageRatingLabel;
 
     private int currentGameId;
     private double currentGamePrice;
@@ -74,10 +75,22 @@ public class GameDetailController {
 
                 // OYUN YÜKLENDİĞİNDE YORUMLARI DA GETİR
                 loadReviews(gameId);
+                try {
+                    double avg = reviewDAO.getAverageRating(gameId);
+                    if (avg > 0.0) {
+                        // Puan varsa altın sarısı renkte göster
+                        averageRatingLabel.setText(String.format(java.util.Locale.US, "Ortalama Puan: %.1f / 5.0 ⭐", avg));
+                    } else {
+                        averageRatingLabel.setText("Henüz puan verilmemiş");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Ortalama puan çekilemedi!");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        checkGameStatus(gameId);
     }
 
     private void loadReviews(int gameId) {
@@ -106,10 +119,38 @@ public class GameDetailController {
         }
     }
 
-    // --- YENİ: YORUM GÖNDERME METODU ---
     @FXML
     private void handleSubmitReview() {
         int userId = util.Session.getCurrentUserId();
+
+        // --- 1. ADIM: KULLANICI BU OYUNA SAHİP Mİ KONTROLÜ ---
+        try {
+            magaza.service.GameService gameService = new magaza.service.GameService();
+            java.util.List<magaza.model.Game> myGames = gameService.getPurchasedGames(userId);
+
+            // Kullanıcının oyunları içinde şu anki oyunun ID'si var mı diye bakıyoruz
+            boolean ownsGame = myGames.stream().anyMatch(g -> g.getId() == currentGameId);
+
+            if (!ownsGame) {
+                // Sahip değilse ekrana uyarı ver ve metodu durdur
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("GameStore | İnceleme Uyarısı");
+                alert.setHeaderText(null);
+                alert.setContentText("Bu oyunu inceleyebilmek için önce satın alıp kütüphanenize eklemelisiniz!");
+
+                DialogPane pane = alert.getDialogPane();
+                pane.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #5352ed; -fx-border-width: 2;");
+                pane.lookupAll(".label").forEach(node -> node.setStyle("-fx-text-fill: white; -fx-font-weight: bold;"));
+
+                alert.showAndWait();
+                return; // İşlemi iptal et!
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // ----------------------------------------------------
+
+        // --- 2. ADIM: YORUMU VERİTABANINA YAZMA ---
         Integer rating = ratingComboBox.getValue();
         String comment = reviewInput.getText().trim();
 
@@ -118,17 +159,12 @@ public class GameDetailController {
             return;
         }
 
-        // Yine DAO'daki efsane addReview metodumuzu kullanıyoruz
         boolean isSuccess = reviewDAO.addReview(userId, currentGameId, rating, comment);
 
         if (isSuccess) {
-            // Gönderdikten sonra kutuları temizle ve listeyi yenile
             reviewInput.clear();
             ratingComboBox.setValue(null);
             loadReviews(currentGameId);
-            System.out.println("Yorum başarıyla eklendi/güncellendi!");
-        } else {
-            System.out.println("Yorum eklenirken veritabanı hatası!");
         }
     }
 
@@ -167,6 +203,38 @@ public class GameDetailController {
             contentArea.getChildren().add(storePage);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    // --- YENİ: BUTON DURUMUNU KONTROL EDEN METOT ---
+    private void checkGameStatus(int gameId) {
+        int currentUserId = util.Session.getCurrentUserId();
+        try {
+            magaza.service.GameService gameService = new magaza.service.GameService();
+
+            // 1. Oyun zaten kütüphanede var mı?
+            boolean isOwned = gameService.getPurchasedGames(currentUserId).stream().anyMatch(g -> g.getId() == gameId);
+
+            // 2. Oyun zaten sepette mi?
+            boolean isInCart = util.CartService.getCart().contains(gameId);
+
+            if (isOwned) {
+                // Eğer oyuna sahipse butonu koyu renk yap ve kilitle
+                addToCartButton.setText("Kütüphanenizde Var");
+                addToCartButton.setStyle("-fx-background-color: #2a2a5a; -fx-text-fill: #a0a0b0; -fx-border-color: #5352ed; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12;");
+                addToCartButton.setDisable(true);
+            } else if (isInCart) {
+                // Eğer oyun sepetteyse butonu turuncu yap ve kilitle
+                addToCartButton.setText("Zaten Sepette");
+                addToCartButton.setStyle("-fx-background-color: #d97706; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8;");
+                addToCartButton.setDisable(true);
+            } else {
+                // Hiçbiri değilse normal sepet butonunu göster
+                addToCartButton.setText("Sepete Ekle");
+                addToCartButton.setStyle("-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8; -fx-cursor: hand;");
+                addToCartButton.setDisable(false);
+            }
+        } catch (Exception e) {
+            System.out.println("Oyun durumu kontrol edilemedi: " + e.getMessage());
         }
     }
 }

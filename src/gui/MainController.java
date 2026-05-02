@@ -33,6 +33,11 @@ public class MainController {
         // UYGULAMA AÇILDIĞINDA SEPETİ VERİTABANINDAN YÜKLE (Senkronizasyon)
         loadUserCart();
 
+        // --- YENİ EKLENEN KISIM: Arayüzdeki sahte yazıyı sıfırlama ---
+        if (util.CartService.getCart().isEmpty()) {
+            resetCartUI();
+        }
+
         showStore();
     }
 

@@ -4,57 +4,59 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<HBox spacing="30" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="gui.GameDetailController" style="-fx-background-color: transparent; -fx-padding: 30;">
+<!-- Ana kapsayıcıyı ScrollPane yaptık ki sayfa aşağı kayabilsin -->
+<ScrollPane fitToWidth="true" style="-fx-background-color: #1a1a2e; -fx-background: #1a1a2e; -fx-border-color: transparent;" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="gui.GameDetailController">
 
-    <!-- SOL TARAF: OYUN BİLGİLERİ VE SATIN ALMA -->
-    <VBox spacing="20" prefWidth="400" style="-fx-background-color: #2a2a4a; -fx-padding: 25; -fx-background-radius: 15;">
+    <VBox spacing="30" style="-fx-background-color: transparent; -fx-padding: 30;">
 
-        <!-- Oyun Kapağı -->
-        <ImageView fx:id="coverImageView" fitWidth="350" fitHeight="450" preserveRatio="true"/>
+        <!-- ÜST KISIM: OYUN KAPAĞI VE BİLGİLERİ (Yan Yana) -->
+        <HBox spacing="30" style="-fx-background-color: #2a2a4a; -fx-padding: 25; -fx-background-radius: 15;">
 
-        <!-- Oyun Adı -->
-        <Label fx:id="nameLabel" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;" wrapText="true"/>
+            <!-- Oyun Kapağı -->
+            <ImageView fx:id="coverImageView" fitWidth="280" preserveRatio="true"/>
 
-        <!-- Fiyat -->
-        <Label fx:id="priceLabel" style="-fx-text-fill: #4caf50; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <!-- Oyun Detayları ve Butonlar -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS">
+                <Label fx:id="nameLabel" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" wrapText="true"/>
+                <Label fx:id="priceLabel" style="-fx-text-fill: #4caf50; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="averageRatingLabel" style="-fx-text-fill: #ffd700; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label text="Oyun Özeti" style="-fx-text-fill: #a0a0b0; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label fx:id="summaryLabel" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-line-spacing: 5px;" wrapText="true" VBox.vgrow="ALWAYS"/>
 
-        <!-- Özet -->
-        <Label text="Oyun Özeti" style="-fx-text-fill: #a0a0b0; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-        <Label fx:id="summaryLabel" style="-fx-text-fill: white; -fx-font-size: 14px;" wrapText="true" VBox.vgrow="ALWAYS"/>
+                <Region VBox.vgrow="ALWAYS" /> <!-- Arayı açmak için yay -->
 
-        <Region VBox.vgrow="ALWAYS" /> <!-- Boşluk Doldurucu -->
+                <!-- Butonlar -->
+                <HBox spacing="15">
+                    <Button fx:id="addToCartButton" text="Sepete Ekle" onAction="#handleAddToCart" prefWidth="200" style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                    <Button text="Mağazaya Dön" onAction="#handleBackToStore" prefWidth="150" style="-fx-background-color: transparent; -fx-text-fill: #a0a0b0; -fx-border-color: #a0a0b0; -fx-border-radius: 8; -fx-padding: 12; -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
+        </HBox>
 
-        <!-- Butonlar -->
-        <Button fx:id="addToCartButton" text="Sepete Ekle" onAction="#handleAddToCart" maxWidth="Infinity" style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8; -fx-cursor: hand;"/>
-        <Button text="Mağazaya Dön" onAction="#handleBackToStore" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: #a0a0b0; -fx-border-color: #a0a0b0; -fx-border-radius: 8; -fx-padding: 10; -fx-cursor: hand;"/>
-    </VBox>
+        <!-- ALT KISIM: OYUNCU YORUMLARI VE DEĞERLENDİRME (Alt Alta) -->
+        <VBox spacing="20" style="-fx-background-color: #2a2a4a; -fx-padding: 25; -fx-background-radius: 15;">
 
+            <Label text="Oyuncu Yorumları" style="-fx-font-weight: bold; -fx-font-size: 22px; -fx-text-fill: white;"/>
 
-    <!-- SAĞ TARAF: YORUMLAR VE DEĞERLENDİRME ALANI -->
-    <VBox spacing="15" HBox.hgrow="ALWAYS" style="-fx-background-color: #2a2a4a; -fx-padding: 25; -fx-background-radius: 15;">
+            <!-- Yorum Listesi (Daha geniş ve uzun) -->
+            <ListView fx:id="reviewsListView" prefHeight="300" style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-text-fill: white;"/>
 
-        <Label text="Oyuncu Yorumları" style="-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: white;"/>
+            <!-- Yorum Yazma Alanı -->
+            <VBox spacing="15" style="-fx-background-color: #1a1a2e; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #5352ed; -fx-border-radius: 10;">
+                <Label text="Kendi İncelemeni Yaz" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;"/>
 
-        <!-- Yorumların Akacağı Liste -->
-        <ListView fx:id="reviewsListView" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-control-inner-background: #12122a; -fx-background-radius: 8; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-text-fill: white;"/>
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="Puanın:" style="-fx-text-fill: #a0a0b0; -fx-font-size: 14px;"/>
+                    <ComboBox fx:id="ratingComboBox" promptText="Yıldız Seç (1-5)" style="-fx-background-color: #e0e0e0; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';"/>
+                </HBox>
 
-        <Region minHeight="10"/> <!-- Araya ince bir boşluk -->
+                <HBox spacing="15">
+                    <TextField fx:id="reviewInput" promptText="Oyun hakkında ne düşünüyorsun? Deneyimlerini paylaş..." HBox.hgrow="ALWAYS" style="-fx-background-color: #2a2a4a; -fx-text-fill: white; -fx-prompt-text-fill: #7a7a9a; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #3a3a6a; -fx-border-radius: 8; -fx-font-size: 14px;"/>
 
-        <!-- Yorum Yazma Alanı (Siyah Kutu İçinde) -->
-        <VBox spacing="10" style="-fx-background-color: #1a1a2e; -fx-padding: 15; -fx-background-radius: 10; -fx-border-color: #5352ed; -fx-border-radius: 10;">
-            <Label text="Kendi İncelemeni Yaz" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-
-            <HBox spacing="15" alignment="CENTER_LEFT">
-                <Label text="Puanın:" style="-fx-text-fill: #a0a0b0;"/>
-                <ComboBox fx:id="ratingComboBox" promptText="1-5 Seç" style="-fx-background-color: #2a2a4a; -fx-text-fill: white;"/>
-            </HBox>
-
-            <HBox spacing="10">
-                <TextField fx:id="reviewInput" promptText="Oyun hakkında ne düşünüyorsun?..." HBox.hgrow="ALWAYS" style="-fx-background-color: #2a2a4a; -fx-text-fill: white; -fx-prompt-text-fill: #7a7a9a; -fx-background-radius: 8; -fx-padding: 10; -fx-border-color: #3a3a6a; -fx-border-radius: 8;"/>
-
-                <Button text="Gönder" onAction="#handleSubmitReview" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
-            </HBox>
+                    <Button text="İncelemeyi Gönder" onAction="#handleSubmitReview" style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 25; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                </HBox>
+            </VBox>
         </VBox>
 
     </VBox>
-</HBox>
+</ScrollPane>

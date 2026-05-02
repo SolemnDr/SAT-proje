@@ -17,6 +17,7 @@ public class SocialController {
     @FXML private ListView<String> messagesListView;
     @FXML private TextField messageInput;
     @FXML private Label chatHeaderLabel;
+    @FXML private ListView<User> requestsListView;
 
     private FriendDAO friendDAO;
     private MessageDAO messageDAO;
@@ -47,6 +48,7 @@ public class SocialController {
 
         // 3. Önce veritabanından gerçek arkadaşları yükle
         loadFriends();
+        loadRequests();
 
         // 5. Arkadaş seçildiğinde yapılacak işlem
         friendsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -67,6 +69,51 @@ public class SocialController {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    private void loadRequests() {
+        if (requestsListView == null) return;
+        requestsListView.getItems().clear();
+        try {
+            // Sizin DAO'daki metot!
+            List<User> requests = friendDAO.getPendingRequests(currentUserId);
+            if (requests != null) {
+                requestsListView.getItems().addAll(requests);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleAcceptRequest() {
+        User selectedRequest = requestsListView.getSelectionModel().getSelectedItem();
+        if (selectedRequest != null) {
+            // Sizin DAO'daki acceptFriendRequest metodu!
+            boolean success = friendDAO.acceptFriendRequest(selectedRequest.getId(), currentUserId);
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Kabul Edildi", selectedRequest.getUsername() + " artık arkadaşın!");
+                loadRequests();
+                loadFriends();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Hata", "İstek kabul edilemedi.");
+            }
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen kabul etmek için bir istek seçin.");
+        }
+    }
+
+    @FXML
+    private void handleRejectRequest() {
+        User selectedRequest = requestsListView.getSelectionModel().getSelectedItem();
+        if (selectedRequest != null) {
+            // Sizin DAO'daki removeFriend metodu!
+            boolean success = friendDAO.removeFriend(currentUserId, selectedRequest.getId());
+            if (success) {
+                loadRequests();
+            }
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Uyarı", "Lütfen reddetmek için bir istek seçin.");
         }
     }
 

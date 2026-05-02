@@ -44,16 +44,16 @@ public class MessageDAO {
         }
     }
 
-    // 3. İKİ KİŞİ ARASINDAKİ SOHBET GEÇMİŞİNİ GETİRME (Tarih Sıralı)
-    // Tuğalp sohbet penceresini açtığında bu metot çalışıp eski mesajları dizecek.
-    // Şimdilik mesajları String olarak döndürüyoruz, isterseniz ileride Message nesnesine çevirebilirsiniz.
+    // 3. İKİ KİŞİ ARASINDAKİ SOHBET GEÇMİŞİNİ GETİRME (Gerçek Nicknameler ile)
     public static List<String> getConversation(int user1Id, int user2Id) throws SQLException {
         List<String> conversation = new ArrayList<>();
 
-        // Hem benim ona attığım hem onun bana attığı mesajları zaman sırasına göre getirir
-        String sql = "SELECT sender_id, message_text, sent_at FROM messages " +
-                "WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) " +
-                "ORDER BY sent_at ASC";
+        // INNER JOIN kullanarak mesajı gönderen kişinin 'username' bilgisini de users tablosundan çekiyoruz
+        String sql = "SELECT m.sender_id, m.message_text, m.sent_at, u.username " +
+                "FROM messages m " +
+                "JOIN users u ON m.sender_id = u.id " +
+                "WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?) " +
+                "ORDER BY m.sent_at ASC";
 
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, user1Id);
@@ -63,13 +63,12 @@ public class MessageDAO {
 
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
-            int senderId = rs.getInt("sender_id");
+            String senderName = rs.getString("username"); // Veritabanından gelen gerçek oyuncu adı
             String text = rs.getString("message_text");
             String time = rs.getString("sent_at");
 
-            // Arayüzde kimin yazdığı belli olsun diye basit bir format
-            String prefix = (senderId == user1Id) ? "Ben: " : "Arkadaş: ";
-            conversation.add("[" + time + "] " + prefix + text);
+            // Artık "Ben/Arkadaş" yerine direkt gönderenin adını (Örn: "Halis: Merhaba") yazdırıyoruz
+            conversation.add("[" + time + "] " + senderName + ": " + text);
         }
         return conversation;
     }

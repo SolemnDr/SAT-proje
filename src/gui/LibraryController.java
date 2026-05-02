@@ -79,24 +79,33 @@ public class LibraryController {
         playBtn.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
         playBtn.setPrefWidth(120);
 
-        // --- YENİ EKLENEN KISIM: Tıklama Olayı (Event) ---
         playBtn.setOnAction(event -> {
             try {
-                // Oyun detay sayfasını (gameDetail.fxml) yükle
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("gameDetail.fxml"));
+                // 1. ŞÜPHELİ: Dosya adı büyük/küçük harf uyumu.
+                // Eğer sol taraftaki dosya ağacında dosyanın adı GameDetail.fxml veya gamedetail.fxml ise
+                // aşağıdaki tırnak içindeki ismi BİREBİR onunla aynı yapmalısın!
+                String fxmlDosyaAdi = "game_detail.fxml";
+
+                java.net.URL fxmlUrl = getClass().getResource(fxmlDosyaAdi);
+
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(fxmlUrl);
                 javafx.scene.Node detailPage = loader.load();
 
-                // Detay sayfasına hangi oyuna tıklandığını haber ver
-                // (Eğer GameDetailController'ının adı farklıysa ona göre düzelt)
                 gui.GameDetailController controller = loader.getController();
                 controller.setGame(game);
 
-                // MainController'daki contentArea'yı bulup içine detay sayfasını göm
-                javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) playBtn.getScene().lookup("#contentArea");
-                contentArea.getChildren().clear();
-                contentArea.getChildren().add(detailPage);
+                // Ekranı değiştirme
+                javafx.scene.Parent root = playBtn.getScene().getRoot();
+                javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) root.lookup("#contentArea");
+
+                if (contentArea != null) {
+                    contentArea.getChildren().clear();
+                    contentArea.getChildren().add(detailPage);
+                } else {
+                    System.out.println("HATA: contentArea paneli arayüzde bulunamadı!");
+                }
             } catch (Exception e) {
-                System.out.println("Oyun detay sayfası açılamadı!");
+                System.out.println("Oyun detay sayfası yüklenirken bir hata oluştu!");
                 e.printStackTrace();
             }
         });
