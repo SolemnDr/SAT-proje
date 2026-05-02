@@ -15,7 +15,6 @@ import util.DBConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.List;
 
 public class CartController {
 
@@ -23,16 +22,20 @@ public class CartController {
     @FXML private Label totalPriceLabel;
 
     private double currentTotal = 0.0;
+
     @FXML
     public void initialize() {
-        // Uygulama açılınca veritabanındaki sepeti RAM'e yükle
         syncCartFromDB();
         loadCartItems();
     }
 
     private void syncCartFromDB() {
         int currentUserId = util.Session.getCurrentUserId();
-        String sql = "SELECT game_id FROM cart WHERE user_id = ?";
+
+        // HAYALET ÜRÜN KALKANI V2: Sadece mağazada HALA VAR OLAN oyunları say!
+        // Mağazadan silinmiş ama sepette kalmış kalıntıları (JOIN ile) filtreliyoruz.
+        String sql = "SELECT DISTINCT c.game_id FROM cart c JOIN games g ON c.game_id = g.id WHERE c.user_id = ?";
+
         try (Connection conn = DBConnection.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, currentUserId);
@@ -45,14 +48,15 @@ public class CartController {
             e.printStackTrace();
         }
     }
+
     private void loadCartItems() {
         cartItemsContainer.getChildren().clear();
         currentTotal = 0.0;
 
         int currentUserId = util.Session.getCurrentUserId();
 
-        // Sepeti RAM'den değil, doğrudan veritabanından çek
-        String sql = "SELECT g.id, g.name, g.price, g.cover_url " +
+        // İNDİRİM SÜTUNU VE HAYALET KALKANI EKLENDİ
+        String sql = "SELECT DISTINCT g.id, g.name, g.price, g.discount_percent, g.cover_url " +
                 "FROM games g " +
                 "JOIN cart c ON g.id = c.game_id " +
                 "WHERE c.user_id = ?";
@@ -69,13 +73,19 @@ public class CartController {
                 hasItems = true;
                 int id       = rs.getInt("id");
                 String name  = rs.getString("name");
-                double price = rs.getDouble("price");
+                double originalPrice = rs.getDouble("price");
+                double discount = rs.getDouble("discount_percent");
                 String cover = rs.getString("cover_url");
 
-                currentTotal += price;
-                cartItemsContainer.getChildren().add(createCartItemRow(id, name, price, cover));
+                // MATEMATİK ZAMANI
+                double finalPrice = originalPrice;
+                if (discount > 0) {
+                    finalPrice = originalPrice * (1 - (discount / 100.0));
+                }
 
-                // RAM'i de veritabanıyla senkronize et
+                currentTotal += finalPrice; // Toplama indirimli fiyat ekleniyor
+                cartItemsContainer.getChildren().add(createCartItemRow(id, name, originalPrice, finalPrice, discount, cover));
+
                 if (!util.CartService.getCart().contains(id)) {
                     util.CartService.addToCart(id);
                 }
@@ -101,7 +111,7 @@ public class CartController {
         }
     }
 
-    private HBox createCartItemRow(int id, String name, double price, String coverUrl) {
+    private HBox createCartItemRow(int id, String name, double originalPrice, double finalPrice, double discount, String coverUrl) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setStyle("-fx-background-color: #2a2a5a; -fx-padding: 15; -fx-background-radius: 8;");
@@ -127,10 +137,24 @@ public class CartController {
         nameLbl.setPrefWidth(500);
         nameLbl.setWrapText(true);
 
-        // Fiyat
-        Label priceLbl = new Label(String.format(java.util.Locale.US, "%.2f TL", price));
-        priceLbl.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 20px; -fx-font-weight: bold;");
-        priceLbl.setPrefWidth(150);
+        // FİYAT GÖSTERİMİ (İndirimliyse üstü çizili tasarım)
+        VBox priceBox = new VBox(5);
+        priceBox.setAlignment(Pos.CENTER_LEFT);
+        priceBox.setPrefWidth(150);
+
+        if (discount > 0) {
+            Label origLbl = new Label(String.format(java.util.Locale.US, "%.2f TL", originalPrice));
+            origLbl.setStyle("-fx-text-fill: #a0a0c0; -fx-font-size: 14px; -fx-strikethrough: true;");
+
+            Label finalLbl = new Label(String.format(java.util.Locale.US, "%.2f TL", finalPrice));
+            finalLbl.setStyle("-fx-text-fill: #ffce00; -fx-font-size: 20px; -fx-font-weight: bold;");
+
+            priceBox.getChildren().addAll(origLbl, finalLbl);
+        } else {
+            Label finalLbl = new Label(String.format(java.util.Locale.US, "%.2f TL", finalPrice));
+            finalLbl.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 20px; -fx-font-weight: bold;");
+            priceBox.getChildren().add(finalLbl);
+        }
 
         // Sepetten Çıkar Butonu
         Button removeBtn = new Button("X");
@@ -138,20 +162,16 @@ public class CartController {
         removeBtn.setOnAction(e -> {
             try {
                 int currentUserId = util.Session.getCurrentUserId();
-                // 1. Veritabanından sil
                 new magaza.service.GameService().removeFromCart(currentUserId, id);
             } catch (Exception ex) {
                 System.out.println("Veritabanından silinirken hata: " + ex.getMessage());
             }
 
-            // 2. Arayüz hafızasından sil
             CartService.removeGame(id);
-
-            // 3. Ekranı yenile (Bu sayede üst bar da otomatik güncellenecek)
             loadCartItems();
         });
 
-        row.getChildren().addAll(img, nameLbl, priceLbl, removeBtn);
+        row.getChildren().addAll(img, nameLbl, priceBox, removeBtn);
         return row;
     }
 
@@ -160,15 +180,12 @@ public class CartController {
         if (currentTotal == 0) return;
 
         try {
-            // Ödeme sayfasına yönlendir
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("payment.fxml"));
             Node paymentPage = loader.load();
 
-            // Toplam tutarı ödeme ekranına gönder
             PaymentController controller = loader.getController();
-            controller.setTotalAmount(currentTotal);
+            controller.setTotalAmount(currentTotal); // İndirimli tutar gidiyor!
 
-            // Ana ekrana bas
             javafx.scene.layout.StackPane contentArea = (javafx.scene.layout.StackPane) cartItemsContainer.getScene().lookup("#contentArea");
             contentArea.getChildren().clear();
             contentArea.getChildren().add(paymentPage);

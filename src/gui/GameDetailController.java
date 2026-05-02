@@ -7,7 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import magaza.model.Game; // setGame için eklendi
+import magaza.model.Game;
 import util.DBConnection;
 
 import java.sql.Connection;
@@ -40,7 +40,6 @@ public class GameDetailController {
         }
     }
 
-    // İŞTE KÜTÜPHANEDEN GELEN HATAYI ÇÖZEN O EKSİK METOT!
     public void setGame(Game game) {
         // Obje geldiğinde içinden ID'yi alıp normal yükleme metodumuzu çağırıyoruz
         loadGameData(game.getId());
@@ -49,7 +48,8 @@ public class GameDetailController {
     public void loadGameData(int gameId) {
         this.currentGameId = gameId;
 
-        String sql = "SELECT name, summary, price, cover_url FROM games WHERE id = ?";
+        // --- 1. ADIM: İNDİRİM YÜZDESİNİ SQL SORGUSUNA EKLEDİK ---
+        String sql = "SELECT name, summary, price, discount_percent, cover_url FROM games WHERE id = ?";
 
         try (Connection conn = DBConnection.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -60,8 +60,24 @@ public class GameDetailController {
             if (rs.next()) {
                 nameLabel.setText(rs.getString("name"));
 
-                currentGamePrice = rs.getDouble("price");
-                priceLabel.setText(String.format(java.util.Locale.US, "%.2f TL", currentGamePrice));
+                // --- 2. ADIM: İNDİRİM MATEMATİĞİ VE TASARIM ---
+                double originalPrice = rs.getDouble("price");
+                double discount = rs.getDouble("discount_percent");
+
+                if (discount > 0) {
+                    // İndirim varsa yeni fiyatı hesapla
+                    currentGamePrice = originalPrice * (1 - (discount / 100.0));
+                    priceLabel.setText(String.format(java.util.Locale.US, "%.2f TL (-%%%.0f)", currentGamePrice, discount));
+                    // İndirimli fiyata sarı ve dikkat çekici bir stil veriyoruz
+                    priceLabel.setStyle("-fx-text-fill: #ffce00; -fx-font-weight: bold; -fx-font-size: 24px;");
+                } else {
+                    // İndirim yoksa ham fiyat
+                    currentGamePrice = originalPrice;
+                    priceLabel.setText(String.format(java.util.Locale.US, "%.2f TL", currentGamePrice));
+                    // Standart yeşil stil
+                    priceLabel.setStyle("-fx-text-fill: #4caf50; -fx-font-weight: bold; -fx-font-size: 24px;");
+                }
+                // ----------------------------------------------
 
                 String summary = rs.getString("summary");
                 summaryLabel.setText((summary == null || summary.isEmpty()) ? "Bu oyun için henüz bir özet girilmemiş." : summary);
@@ -78,7 +94,6 @@ public class GameDetailController {
                 try {
                     double avg = reviewDAO.getAverageRating(gameId);
                     if (avg > 0.0) {
-                        // Puan varsa altın sarısı renkte göster
                         averageRatingLabel.setText(String.format(java.util.Locale.US, "Ortalama Puan: %.1f / 5.0 ⭐", avg));
                     } else {
                         averageRatingLabel.setText("Henüz puan verilmemiş");
@@ -99,17 +114,13 @@ public class GameDetailController {
         reviewsListView.getItems().clear();
 
         try {
-            // DAO sınıfındaki hazır metodu kullanıyoruz!
             java.util.List<magaza.model.Review> reviews = reviewDAO.getGameReviews(gameId);
 
             if (reviews == null || reviews.isEmpty()) {
                 reviewsListView.getItems().add("Bu oyun için henüz yorum yapılmamış. İlk yorumu sen yaz!");
             } else {
                 for (magaza.model.Review r : reviews) {
-                    // Yıldız sayısına göre emoji oluştur (Örn: ⭐⭐⭐)
                     String starString = "⭐".repeat(Math.max(0, r.getRating()));
-
-                    // Listeye şık bir formatta ekle (Senin DAO username'i de getiriyor, harika!)
                     reviewsListView.getItems().add(r.getUsername() + " (" + starString + "):\n" + r.getComment());
                 }
             }
@@ -123,16 +134,13 @@ public class GameDetailController {
     private void handleSubmitReview() {
         int userId = util.Session.getCurrentUserId();
 
-        // --- 1. ADIM: KULLANICI BU OYUNA SAHİP Mİ KONTROLÜ ---
         try {
             magaza.service.GameService gameService = new magaza.service.GameService();
             java.util.List<magaza.model.Game> myGames = gameService.getPurchasedGames(userId);
 
-            // Kullanıcının oyunları içinde şu anki oyunun ID'si var mı diye bakıyoruz
             boolean ownsGame = myGames.stream().anyMatch(g -> g.getId() == currentGameId);
 
             if (!ownsGame) {
-                // Sahip değilse ekrana uyarı ver ve metodu durdur
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("GameStore | İnceleme Uyarısı");
                 alert.setHeaderText(null);
@@ -143,14 +151,12 @@ public class GameDetailController {
                 pane.lookupAll(".label").forEach(node -> node.setStyle("-fx-text-fill: white; -fx-font-weight: bold;"));
 
                 alert.showAndWait();
-                return; // İşlemi iptal et!
+                return;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // ----------------------------------------------------
 
-        // --- 2. ADIM: YORUMU VERİTABANINA YAZMA ---
         Integer rating = ratingComboBox.getValue();
         String comment = reviewInput.getText().trim();
 
@@ -175,20 +181,21 @@ public class GameDetailController {
             magaza.service.GameService gameService = new magaza.service.GameService();
 
             gameService.addToCart(currentUserId, currentGameId);
-            util.CartService.addToCart(currentGameId); // Metot adını addToCart olarak düzelttim (senin util.CartService'e göre)
+            util.CartService.addToCart(currentGameId);
 
             if (MainController.instance != null) {
+                // Artık indirimli fiyat (currentGamePrice) UI'a gönderiliyor!
                 MainController.instance.updateCartUI(currentGamePrice);
             }
 
             addToCartButton.setText("Sepete Eklendi ✔");
-            addToCartButton.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-opacity: 1;");
+            addToCartButton.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white; -fx-opacity: 1; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8;");
             addToCartButton.setDisable(true);
 
         } catch (Exception e) {
             System.out.println("Sepete eklenemedi: " + e.getMessage());
             addToCartButton.setText("Zaten Eklendi/Alındı");
-            addToCartButton.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white;");
+            addToCartButton.setStyle("-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8;");
             addToCartButton.setDisable(true);
         }
     }
@@ -205,30 +212,24 @@ public class GameDetailController {
             e.printStackTrace();
         }
     }
-    // --- YENİ: BUTON DURUMUNU KONTROL EDEN METOT ---
+
     private void checkGameStatus(int gameId) {
         int currentUserId = util.Session.getCurrentUserId();
         try {
             magaza.service.GameService gameService = new magaza.service.GameService();
 
-            // 1. Oyun zaten kütüphanede var mı?
             boolean isOwned = gameService.getPurchasedGames(currentUserId).stream().anyMatch(g -> g.getId() == gameId);
-
-            // 2. Oyun zaten sepette mi?
             boolean isInCart = util.CartService.getCart().contains(gameId);
 
             if (isOwned) {
-                // Eğer oyuna sahipse butonu koyu renk yap ve kilitle
                 addToCartButton.setText("Kütüphanenizde Var");
                 addToCartButton.setStyle("-fx-background-color: #2a2a5a; -fx-text-fill: #a0a0b0; -fx-border-color: #5352ed; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12;");
                 addToCartButton.setDisable(true);
             } else if (isInCart) {
-                // Eğer oyun sepetteyse butonu turuncu yap ve kilitle
                 addToCartButton.setText("Zaten Sepette");
                 addToCartButton.setStyle("-fx-background-color: #d97706; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8;");
                 addToCartButton.setDisable(true);
             } else {
-                // Hiçbiri değilse normal sepet butonunu göster
                 addToCartButton.setText("Sepete Ekle");
                 addToCartButton.setStyle("-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 12; -fx-background-radius: 8; -fx-cursor: hand;");
                 addToCartButton.setDisable(false);
