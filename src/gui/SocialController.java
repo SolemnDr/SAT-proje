@@ -282,8 +282,8 @@ public class SocialController {
                 gamesList.getItems().add("Bu kullanıcının henüz oyunu yok.");
             } else {
                 for (magaza.model.Game g : games) {
-                    gamesList.getItems().add("🎯 " + g.getName()
-                            + "  —  " + String.format(java.util.Locale.US, "%.2f TL", g.getPrice()));
+                    // Sadece oyunun ismini ekliyoruz, fiyat kısmını sildik[cite: 1]
+                    gamesList.getItems().add("  " + g.getName());
                 }
             }
         } catch (Exception e) {
@@ -348,13 +348,22 @@ public class SocialController {
             Optional<User> userOpt = userDAO.findByUsername(username);
             if (userOpt.isPresent()) {
                 User newFriend = userOpt.get();
+
+                // Kendine istek gönderme kontrolü zaten var
                 if (newFriend.getId() == currentUserId) {
                     showFeedback("Kendinize istek gönderemezsiniz.", "#ff4c4c");
                     return;
                 }
+
+                // YENİ: Yayıncı kontrolü (Role 1 = Yayıncı/Geliştirici)
+                if (newFriend.getRole() == 1) {
+                    showFeedback("Yayıncılara arkadaşlık isteği gönderilemez.", "#ff4c4c");
+                    return;
+                }
+
                 friendDAO.sendFriendRequest(currentUserId, newFriend.getId());
                 searchFriendInput.clear();
-                showFeedback("İstek gönderildi! ✔", "#4caf50");
+                showFeedback("İstek gönderildi! ", "#4caf50");
             } else {
                 showFeedback("Kullanıcı bulunamadı.", "#ff4c4c");
             }

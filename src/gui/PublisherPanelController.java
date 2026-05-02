@@ -122,10 +122,30 @@ public class PublisherPanelController {
         newSummaryArea.clear();
     }
 
+    // PublisherPanelController.java içindeki showAlert metodunu tamamen değiştir:
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
+        alert.setTitle("GameStore | " + title);
+        alert.setHeaderText(null);
         alert.setContentText(content);
+
+        // Temaya uydurma (CSS styling)
+        DialogPane pane = alert.getDialogPane();
+        pane.setStyle("-fx-background-color: #1a1a2e; " +
+                "-fx-border-color: #5352ed; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 10; " +
+                "-fx-background-radius: 10;");
+
+        // Yazı renklerini ayarla
+        pane.lookupAll(".label").forEach(node ->
+                node.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';")
+        );
+
+        // Buton stilini değiştir
+        Button okButton = (Button) pane.lookupButton(ButtonType.OK);
+        okButton.setStyle("-fx-background-color: #5352ed; -fx-text-fill: white; -fx-cursor: hand;");
+
         alert.showAndWait();
     }
 }
