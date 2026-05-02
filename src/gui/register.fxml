@@ -8,13 +8,13 @@
 
     <VBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 24 0;">
         <Label styleClass="logo-title" text="GameStore">
-         <VBox.margin>
-            <Insets top="40.0" />
-         </VBox.margin></Label>
+            <VBox.margin>
+                <Insets top="40.0" />
+            </VBox.margin></Label>
         <Label styleClass="logo-sub" text="Yeni Hesap Oluştur" />
-      <VBox.margin>
-         <Insets />
-      </VBox.margin>
+        <VBox.margin>
+            <Insets />
+        </VBox.margin>
     </VBox>
 
     <VBox alignment="CENTER" spacing="14" style="-fx-padding: 0 36 0 36;">
@@ -34,30 +34,27 @@
             <PasswordField fx:id="passwordField" promptText="Şifrenizi giriniz" styleClass="field-input" />
         </VBox>
 
-        <VBox spacing="5">
-            <Label styleClass="field-label" text="HESAP TÜRÜ" />
-            <ComboBox fx:id="roleComboBox" maxWidth="Infinity" style="-fx-background-color: #c0c0f0;" styleClass="field-input" />
-        </VBox>
+        <!-- HESAP TÜRÜ KUTUSU BURADAN TAMAMEN SİLİNDİ -->
 
         <Button maxWidth="Infinity" onAction="#handleRegister" styleClass="btn-primary" text="Hesap Oluştur">
-         <VBox.margin>
-            <Insets top="-22.0" />
-         </VBox.margin></Button>
+            <VBox.margin>
+                <Insets top="10.0" />
+            </VBox.margin></Button>
 
         <Label alignment="CENTER" maxWidth="Infinity" styleClass="divider-label" text="Zaten hesabın var mı?" />
 
         <Button maxWidth="Infinity" onAction="#handleLogin" styleClass="btn-primary" text="Giriş Yap" />
 
         <Label fx:id="errorLabel" styleClass="error-label" text="" wrapText="true">
-         <VBox.margin>
-            <Insets bottom="-20.0" top="20.0" />
-         </VBox.margin></Label>
-      <VBox.margin>
-         <Insets />
-      </VBox.margin>
+            <VBox.margin>
+                <Insets bottom="-20.0" top="20.0" />
+            </VBox.margin></Label>
+        <VBox.margin>
+            <Insets />
+        </VBox.margin>
 
     </VBox>
-   <padding>
-      <Insets bottom="50.0" />
-   </padding>
+    <padding>
+        <Insets bottom="50.0" />
+    </padding>
 </VBox>
