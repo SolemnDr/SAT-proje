@@ -72,16 +72,7 @@ public class StoreController {
         // ARAMA VE VERİTABANI İŞLEMİNİ ARKA PLANA (Yeni Thread) ALIYORUZ Kİ EKRAN DONMASIN!
         new Thread(() -> {
             try {
-                try {
-                    List<Game> testList = gameService.getGamesByPage(1, 1);
-                    if (testList != null && !testList.isEmpty()) {
-                        System.out.println("TEST OYUN ADI: " + testList.get(0).getName());
-                        System.out.println("TEST COVER URL: " + testList.get(0).getCoverUrl());
-                    }
-                } catch (Exception ex) {
-                    System.out.println("TEST HATA: " + ex.getMessage());
-                }
-                // Türkçe karakter sorununu (FIFA/fıfa) çözen İngilizce küçültme
+                // Türkçe karakter sorununu çözen İngilizce küçültme
                 String searchText = searchField.getText().trim().toLowerCase(java.util.Locale.ENGLISH);
                 String selectedCategory = categoryBox.getValue();
 
@@ -91,30 +82,23 @@ public class StoreController {
 
                 // 1. VERİLERİ GETİRME AŞAMASI
                 if (!searchText.isEmpty()) {
-                    // Arama kutusu doluysa sadece isme göre oyunları bul
                     allMatches = gameService.searchByName(searchText);
                 } else if (!selectedCategory.equals("Tüm Kategoriler")) {
-                    // Arama kutusu boş ama sadece Kategori seçiliyse, backend'in katı filtresini kullanmak yerine
-                    // tüm listeyi çekiyoruz ki kendi esnek Java filtremizden (şemsiyeden) geçirebilelim.
                     allMatches = gameService.getAllGames();
                 } else {
-                    // İkisi de boşsa dümdüz 20'şerli sayfa sayfa getir
                     gamesToDisplay = gameService.getGamesByPage(currentPage, pageSize);
                     isPaginationFromDB = true;
                 }
 
-                // 2. KATEGORİ FİLTRESİNİ UYGULAMA (İŞTE SİHİR BURADA)
-                // Arama kutusu dolu da olsa boş da olsa kategori seçiliyse bu zırh KESİN çalışacak!
+                // 2. KATEGORİ FİLTRESİNİ UYGULAMA
                 if (!selectedCategory.equals("Tüm Kategoriler") && allMatches != null) {
                     allMatches = allMatches.stream()
                             .filter(g -> {
                                 if (g.getGenres() == null) return false;
 
-                                // IGDB'nin garip etiketleri ile bizim seçimi karşılaştırıyoruz
                                 String gameGenres = g.getGenres().toLowerCase(java.util.Locale.ENGLISH);
                                 String selectedCat = selectedCategory.toLowerCase(java.util.Locale.ENGLISH);
 
-                                // Şemsiye Kategori Kuralları
                                 if (selectedCat.equals("action")) {
                                     return gameGenres.contains("action") ||
                                             gameGenres.contains("hack and slash") ||
@@ -125,7 +109,6 @@ public class StoreController {
                                             gameGenres.contains("role-playing");
                                 }
                                 else if (selectedCat.equals("simulator") || selectedCat.equals("simulation")) {
-                                    // Hem simulation hem simulator kelimelerini yakalar
                                     return gameGenres.contains("simulat");
                                 }
                                 else {
@@ -203,24 +186,20 @@ public class StoreController {
         ImageView coverImage = new ImageView();
         coverImage.setFitWidth(170);
         coverImage.setFitHeight(230);
-
-        // Resimlerin arkasına boş kalmasın diye bir arkaplan ekledik
+        coverImage.setPreserveRatio(true);
         coverImage.setStyle("-fx-background-color: #1a1a2e;");
 
         try {
             String url = game.getCoverUrl();
-            if (url != null && !url.isEmpty()) {
+            if (url != null && !url.trim().isEmpty()) {
                 if (url.startsWith("//")) url = "https:" + url;
-
-                // NOT: Resimler IGDB'den "t_cover_big" formatında iniyor ve internet hızına göre yavaş düşebiliyor.
-                // Eğer fotoğrafların daha hızlı yüklenmesini istersen aşağıdaki "t_cover_big" yazısını
-                // "t_cover_small" olarak değiştirebilirsin (Kalite düşer ama anında yüklenir).
                 url = url.replace("t_thumb", "t_cover_big");
-
-                coverImage.setImage(new Image(url, true)); // true = Arka planda asenkron yükle (Programı dondurmaz)
+                coverImage.setImage(new Image(url, true));
+            } else {
+                System.out.println("Oyun için görsel URL'si girilmemiş: " + game.getName());
             }
         } catch (Exception e) {
-            System.out.println("Resim yüklenemedi: " + game.getName());
+            System.out.println("Resim yüklenirken hata oluştu: " + game.getName());
         }
 
         Label nameLabel = new Label(game.getName());
@@ -229,9 +208,23 @@ public class StoreController {
         nameLabel.setWrapText(true);
         nameLabel.setAlignment(Pos.CENTER);
 
-        double price = (game.getPrice() > 0) ? game.getPrice() : 0.0;
-        Label priceLabel = new Label(String.format(java.util.Locale.US, "%.2f TL", price));
+        // --- İNDİRİM MATEMATİĞİ BURAYA EKLENDİ ---
+        double originalPrice = (game.getPrice() > 0) ? game.getPrice() : 0.0;
+        double discount = game.getDiscountPercent();
+        double finalPrice = originalPrice;
+
+        if (discount > 0) {
+            finalPrice = originalPrice * (1 - (discount / 100.0));
+        }
+
+        Label priceLabel = new Label(String.format(java.util.Locale.US, "%.2f TL", finalPrice));
         priceLabel.setStyle("-fx-text-fill: #4caf50; -fx-font-weight: bold; -fx-font-size: 16px;");
+
+        if (discount > 0) {
+            priceLabel.setText(String.format(java.util.Locale.US, "%.2f TL (-%%%.0f)", finalPrice, discount));
+            priceLabel.setStyle("-fx-text-fill: #ffce00; -fx-font-weight: bold; -fx-font-size: 16px;"); // İndirimliyse sarı dikkat çeker
+        }
+        // ------------------------------------------
 
         card.getChildren().addAll(coverImage, nameLabel, priceLabel);
 

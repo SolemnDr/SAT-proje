@@ -1,14 +1,18 @@
 package gui;
 
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import magaza.model.Game;
 import magaza.service.GameService;
 import util.Session;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class PublisherPanelController {
@@ -56,7 +60,6 @@ public class PublisherPanelController {
             g.setSummary(newSummaryArea.getText());
             g.setPublisherId(Session.getCurrentUserId());
 
-            // DAO içindeki save metodunu tetikleyen servis çağrısı
             magaza.dao.GameDAO dao = new magaza.dao.GameDAO();
             dao.save(g);
 
@@ -83,6 +86,7 @@ public class PublisherPanelController {
         }
     }
 
+    // İŞTE EKSİK OLAN VE ÇÖKMEYE SEBEP OLAN METOT BURASI
     @FXML
     private void handleDeleteGame() {
         Game selected = myGamesTable.getSelectionModel().getSelectedItem();
@@ -93,6 +97,20 @@ public class PublisherPanelController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    // ÇIKIŞ YAP METODU
+    @FXML
+    private void handleLogout(ActionEvent event) {
+        try {
+            util.Session.setCurrentUser(null);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(loader.load(), 960, 560));
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

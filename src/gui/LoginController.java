@@ -9,7 +9,6 @@ import kullanici.service.AuthService;
 import util.Session;
 
 public class LoginController {
-
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
@@ -28,22 +27,23 @@ public class LoginController {
 
         AuthService.AuthResult result = authService.login(username, password);
 
-        switch (result) {
-            case SUCCESS -> {
-                Session.setCurrentUser(authService.getLoggedInUser());
-                errorLabel.setText("");
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("main_layout.fxml"));
-                    Stage stage = (Stage) usernameField.getScene().getWindow();
-                    stage.setScene(new Scene(loader.load(), 1280, 720));
-                    stage.centerOnScreen();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            case USER_NOT_FOUND -> errorLabel.setText("Kullanıcı bulunamadı.");
-            case WRONG_PASSWORD -> errorLabel.setText("Şifre hatalı.");
-            default -> errorLabel.setText("Bir hata oluştu.");
+        if (result == AuthService.AuthResult.SUCCESS) {
+            Session.setCurrentUser(authService.getLoggedInUser());
+            int role = authService.getLoggedInUser().getRole();
+
+            try {
+                // EĞER GELİŞTİRİCİYSE PANELİNE, DEĞİLSE MAĞAZAYA
+                String fxmlFile = (role == 1) ? "publisher_panel.fxml" : "main_layout.fxml";
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+                Stage stage = (Stage) usernameField.getScene().getWindow();
+                stage.setScene(new Scene(loader.load(), 1280, 720));
+                stage.centerOnScreen();
+            } catch (Exception e) { e.printStackTrace(); }
+        } else if (result == AuthService.AuthResult.USER_NOT_FOUND) {
+            errorLabel.setText("Kullanıcı bulunamadı.");
+        } else if (result == AuthService.AuthResult.WRONG_PASSWORD) {
+            errorLabel.setText("Şifre hatalı.");
         }
     }
 
@@ -53,8 +53,6 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("register.fxml"));
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }

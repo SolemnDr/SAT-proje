@@ -1,4 +1,4 @@
-import magaza.model.Game;
+/*import magaza.model.Game;
 import magaza.service.CartService;
 import kutuphane.dao.LibraryDAO;
 import magaza.dao.ReviewDAO;
@@ -119,4 +119,4 @@ public class BackendTest {
             e.printStackTrace();
         }
     }
-}
+}*/

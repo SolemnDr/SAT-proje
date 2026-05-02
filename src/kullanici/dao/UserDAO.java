@@ -8,87 +8,60 @@ import java.util.Optional;
 
 public class UserDAO {
 
-    public void upgradeTableForAvatars() {
-        String sql = "ALTER TABLE users ADD COLUMN avatarPath VARCHAR(255) DEFAULT NULL";
-        try (Statement stmt = DBConnection.get().createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException ignored) {
-        }
-    }
-
-    public void upgradeTableForRoles() {
-        // Kullanıcının rolünü tutan sütun (0 = Oyuncu, 1 = Geliştirici)
-        String sql = "ALTER TABLE users ADD COLUMN role INTEGER DEFAULT 0";
-        try (Statement stmt = DBConnection.get().createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException ignored) {}
-    }
-
+    // 1. KULLANICIYI KAYDET (Role bilgisini de ekliyoruz)
     public void save(User user) throws SQLException {
-        // Sorguda 5 tane soru işareti olmalı ve 'role' sütunu eklenmiş olmalı
-        String sql = "INSERT INTO users (username, email, passwordHash, avatarPath, role) VALUES (?,?,?,?,?)";
+        // AvatarPath sütununu sorgudan çıkardık, sadece 4 parametre kaldı
+        String sql = "INSERT INTO users (username, email, passwordHash, role) VALUES (?,?,?,?)";
         try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setString(4, user.getAvatarPath());
-            ps.setInt(5, user.getRole()); // 5. parametre rol olmalı
+            ps.setInt(4, user.getRole()); // 0: Oyuncu, 1: Yayıncı
             ps.executeUpdate();
         }
     }
 
-    public boolean isUserExists(String username, String email) {
-        String query = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?";
-        try (Connection conn = DBConnection.get();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, email);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
+    // 2. KULLANICIYI BUL (Giriş yaparken rolünü de okuyoruz)
     public Optional<User> findByUsername(String username) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ?";
-        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
-        ps.setString(1, username);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            User u = new User();
-            u.setId(rs.getInt("id"));
-            u.setUsername(rs.getString("username"));
-            u.setEmail(rs.getString("email"));
-            u.setPasswordHash(rs.getString("passwordHash"));
-            u.setAvatarPath(rs.getString("avatarPath"));
-            u.setRole(rs.getInt("role"));
-
-            return Optional.of(u);
+        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setId(rs.getInt("id"));
+                u.setUsername(rs.getString("username"));
+                u.setEmail(rs.getString("email"));
+                u.setPasswordHash(rs.getString("passwordHash"));
+                u.setRole(rs.getInt("role")); // Rol bilgisini veritabanından çekiyoruz
+                return Optional.of(u);
+            }
         }
         return Optional.empty();
     }
 
+    // 3. E-POSTA KONTROLÜ
     public boolean emailExists(String email) throws SQLException {
         String sql = "SELECT 1 FROM users WHERE email = ?";
-        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
-        ps.setString(1, email);
-        return ps.executeQuery().next();
+        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
+            ps.setString(1, email);
+            return ps.executeQuery().next();
+        }
     }
 
-    public boolean updateAvatar(int userId, String newAvatarPath) {
-        String sql = "UPDATE users SET avatarPath = ? WHERE id = ?";
-        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
-            ps.setString(1, newAvatarPath);
-            ps.setInt(2, userId);
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
+    // 4. VERİTABANI GÜNCELLEME (Role sütununu ekler)
+    public void upgradeTableForRoles() {
+        String sql = "ALTER TABLE users ADD COLUMN role INTEGER DEFAULT 0";
+        try (Statement stmt = DBConnection.get().createStatement()) {
+            stmt.execute(sql);
+            System.out.println("✅ Veritabanı Güncellendi: 'role' sütunu eklendi.");
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            // Sütun zaten varsa hata mesajını görmezden geliyoruz
+            if (e.getMessage().contains("duplicate column name") || e.getMessage().contains("already exists")) {
+                System.out.println("ℹ️ Bilgi: 'role' sütunu zaten mevcut, işlem atlandı.");
+            } else {
+                System.err.println("❌ Veritabanı güncellenirken hata: " + e.getMessage());
+            }
         }
     }
 }

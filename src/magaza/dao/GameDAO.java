@@ -30,6 +30,22 @@ public class GameDAO {
         ps.executeUpdate();
     }
 
+    // İndirim uygula (GameService burayı veya alttakini çağırabilir, ikisini de güvenliğe aldım)
+    public void applyDiscount(int gameId, double discountPercent) throws SQLException {
+        String sql = "UPDATE games SET discount_percent = ? WHERE id = ?";
+        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
+            ps.setDouble(1, discountPercent);
+            ps.setInt(2, gameId);
+            ps.executeUpdate();
+            System.out.println("✅ Oyun ID: " + gameId + " için %" + discountPercent + " indirim uygulandı.");
+        }
+    }
+
+    // İsim çakışması olmasın diye GameService 'updateDiscount' çağırırsa diye köprü kurduk
+    public void updateDiscount(int gameId, double discountPercent) throws SQLException {
+        applyDiscount(gameId, discountPercent);
+    }
+
     // Tüm oyunları getir
     public List<Game> findAll() throws SQLException {
         List<Game> games = new ArrayList<>();
@@ -44,7 +60,6 @@ public class GameDAO {
     // Sayfalama (Pagination) destekli tüm oyunları getir
     public List<Game> findAllWithPagination(int limit, int offset) throws SQLException {
         List<Game> games = new ArrayList<>();
-        // Sadece belirtilen aralıktaki verileri çeker
         String sql = "SELECT * FROM games LIMIT ? OFFSET ?";
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, limit);
@@ -82,7 +97,7 @@ public class GameDAO {
         return games;
     }
 
-    // ResultSet'i Game nesnesine çevir
+    // ResultSet'i Game nesnesine çevir (ALT TİRELİ discount_percent'e DİKKAT)
     private Game mapRow(ResultSet rs) throws SQLException {
         Game g = new Game();
         g.setId(rs.getInt("id"));
@@ -94,6 +109,8 @@ public class GameDAO {
         g.setReleaseDate(rs.getLong("release_date"));
         g.setPrice(rs.getDouble("price"));
         g.setPublisherId(rs.getInt("publisher_id"));
+
+        // Veritabanında discount_percent diye kayıtlı, onu okuyoruz!
         g.setDiscountPercent(rs.getDouble("discount_percent"));
         g.setSalesCount(rs.getInt("sales_count"));
         return g;
@@ -179,15 +196,6 @@ public class GameDAO {
         return games;
     }
 
-    // İndirim uygula
-    public void applyDiscount(int gameId, double discountPercent) throws SQLException {
-        String sql = "UPDATE games SET discount_percent = ? WHERE id = ?";
-        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
-        ps.setDouble(1, discountPercent);
-        ps.setInt(2, gameId);
-        ps.executeUpdate();
-    }
-
     // Satış sayısını artır
     public void incrementSalesCount(int gameId) throws SQLException {
         String sql = "UPDATE games SET sales_count = sales_count + 1 WHERE id = ?";
@@ -196,37 +204,34 @@ public class GameDAO {
         ps.executeUpdate();
     }
 
-    // ID'ye göre tek bir oyun getir (Performans Optimizasyonu)
+    // ID'ye göre tek bir oyun getir
     public Game findById(int id) throws SQLException {
         String sql = "SELECT * FROM games WHERE id = ?";
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, id);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            return mapRow(rs); // Bulursa nesneye çevir
+            return mapRow(rs);
         }
-        return null; // Bulamazsa null dön
+        return null;
     }
 
-    // Gelişmiş Çoklu Filtreleme (Dinamik SQL)
+    // Gelişmiş Çoklu Filtreleme
     public List<Game> searchGamesAdvanced(String genre, Double maxPrice, String sortBy) throws SQLException {
         List<Game> games = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM games WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
-        // Kategori filtresi eklendiyse
         if (genre != null && !genre.trim().isEmpty()) {
             sql.append(" AND genres LIKE ?");
             params.add("%" + genre + "%");
         }
 
-        // Maksimum fiyat filtresi eklendiyse
         if (maxPrice != null) {
             sql.append(" AND price <= ?");
             params.add(maxPrice);
         }
 
-        // Sıralama (Order) seçeneği eklendiyse
         if ("PRICE_ASC".equals(sortBy)) {
             sql.append(" ORDER BY price ASC");
         } else if ("PRICE_DESC".equals(sortBy)) {
@@ -235,7 +240,6 @@ public class GameDAO {
             sql.append(" ORDER BY rating DESC");
         }
 
-        // SQL'i hazırlayıp parametreleri güvenli (PreparedStatement) şekilde yerleştiriyoruz
         PreparedStatement ps = DBConnection.get().prepareStatement(sql.toString());
         for (int i = 0; i < params.size(); i++) {
             ps.setObject(i + 1, params.get(i));
@@ -250,21 +254,16 @@ public class GameDAO {
 
     public List<Game> getRecommendationsForUser(int userId) throws SQLException {
         List<Game> recommended = new ArrayList<>();
-
-        // Çok havalı bir İç İçe SQL (Subquery) yazıyoruz:
         String sql = "SELECT DISTINCT g.* FROM games g " +
-                // Adamın sahip olduğu oyunlarla aynı kategorideki oyunları bul
-                "JOIN purchases l ON l.user_id = ? " + // library tablosunu da purchases olarak değiştirdim ki patlamasın
+                "JOIN purchases l ON l.user_id = ? " +
                 "JOIN games ug ON l.game_id = ug.id " +
                 "WHERE g.genres LIKE '%' || ug.genres || '%' " +
-                // Adamın zaten satın aldığı oyunları önerme (Listeden çıkar)
                 "AND g.id NOT IN (SELECT game_id FROM purchases WHERE user_id = ?) " +
-                // En yüksek puanlıları en üste koy ve sadece 5 tane öner
                 "ORDER BY g.rating DESC LIMIT 5";
 
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, userId);
-        ps.setInt(2, userId); // NOT IN içindeki user_id için
+        ps.setInt(2, userId);
         ResultSet rs = ps.executeQuery();
 
         while (rs.next()) {
@@ -273,14 +272,10 @@ public class GameDAO {
         return recommended;
     }
 
-    // --- KÜTÜPHANE İÇİN YENİ EKLENEN METOT ---
     // KULLANICININ SATIN ALDIĞI OYUNLARI GETİR
     public List<Game> getPurchasedGames(int userId) throws SQLException {
         List<Game> ownedGames = new ArrayList<>();
-
-        // purchases tablosundan verileri çekiyoruz
         String sql = "SELECT games.* FROM games INNER JOIN purchases ON games.id = purchases.game_id WHERE purchases.user_id = ?";
-
         PreparedStatement ps = DBConnection.get().prepareStatement(sql);
         ps.setInt(1, userId);
         ResultSet rs = ps.executeQuery();
@@ -289,5 +284,20 @@ public class GameDAO {
             ownedGames.add(mapRow(rs));
         }
         return ownedGames;
+    }
+
+    // Tablo güncelleme (discount_percent olarak düzeltildi!)
+    public void upgradeTableForDiscounts() {
+        String sql = "ALTER TABLE games ADD COLUMN discount_percent REAL DEFAULT 0.0";
+        try (java.sql.Statement stmt = util.DBConnection.get().createStatement()) {
+            stmt.execute(sql);
+            System.out.println("✅ Veritabanı Güncellendi: 'discount_percent' sütunu eklendi.");
+        } catch (java.sql.SQLException e) {
+            if (e.getMessage().contains("duplicate column name") || e.getMessage().contains("already exists")) {
+                System.out.println("ℹ️ Bilgi: 'discount_percent' sütunu zaten mevcut.");
+            } else {
+                System.out.println("❌ İndirim sütunu eklenirken hata: " + e.getMessage());
+            }
+        }
     }
 }

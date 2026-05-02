@@ -101,11 +101,10 @@ public class GameService {
     }
 
     // İndirim uygula (publisher yapacak)
-    public void applyDiscount(int gameId, double discountPercent) throws Exception {
-        if (discountPercent < 0 || discountPercent > 100) {
-            throw new Exception("İndirim 0-100 arasında olmalı!");
-        }
-        gameDAO.applyDiscount(gameId, discountPercent);
+    // magaza.service.GameService içine eklenecek/değiştirilecek:
+    public void applyDiscount(int gameId, double discountPercent) throws java.sql.SQLException {
+        magaza.dao.GameDAO gameDAO = new magaza.dao.GameDAO();
+        gameDAO.updateDiscount(gameId, discountPercent);
     }
 
 

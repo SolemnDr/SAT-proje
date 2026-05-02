@@ -6,7 +6,11 @@ public class User {
     private String email;
     private String passwordHash;
     private String avatarPath;
-    private int role;
+    private int role; // 0: Oyuncu, 1: Geliştirici
+
+    // Getter ve Setterlar
+    public int getRole() { return role; }
+    public void setRole(int role) { this.role = role; }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -22,9 +26,6 @@ public class User {
 
     public String getAvatarPath() { return avatarPath; }
     public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
-
-    public int getRole() { return role; }
-    public void setRole(int role) { this.role = role; }
 
     @Override
     public String toString() {

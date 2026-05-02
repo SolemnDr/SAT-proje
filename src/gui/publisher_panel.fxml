@@ -3,56 +3,71 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
 
 <VBox spacing="20" style="-fx-background-color: #1a1a2e;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.PublisherPanelController">
     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-    <Label text="Yayıncı Yönetim Paneli" style="-fx-text-fill: white; -fx-font-size: 24; -fx-font-weight: bold;"/>
+    <!-- Üst Başlık ve Çıkış Butonu -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Yayıncı Yönetim Paneli" style="-fx-text-fill: white; -fx-font-size: 26; -fx-font-weight: bold;"/>
+        <Region HBox.hgrow="ALWAYS" /> <!-- Arayı açmak için yaylanan boşluk -->
+        <Button text="Çıkış Yap" onAction="#handleLogout" style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
+    </HBox>
 
+    <!-- Sekmeler -->
     <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: #1a1a2e;">
-        <!-- SEKME 1: OYUNLARIMI YÖNET -->
-        <Tab text="Oyunlarım ve İstatistikler">
-            <VBox spacing="15">
+
+        <!-- SEKME 1: OYUNLARIM -->
+        <Tab text="Oyunlarım ve İstatistikler" style="-fx-background-color: #2a2a5a; -fx-text-base-color: white;">
+            <!-- İç VBox arka planı düzeltildi -->
+            <VBox spacing="15" style="-fx-background-color: #1a1a2e;">
                 <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-                <TableView fx:id="myGamesTable" VBox.vgrow="ALWAYS" style="-fx-background-color: #2a2a5a;">
+
+                <TableView fx:id="myGamesTable" VBox.vgrow="ALWAYS" style="-fx-background-color: #2a2a5a; -fx-control-inner-background: #2a2a5a; -fx-table-cell-border-color: #1a1a2e;">
                     <columns>
-                        <TableColumn fx:id="colName" text="Oyun Adı" prefWidth="200"/>
-                        <TableColumn fx:id="colPrice" text="Fiyat (TL)" prefWidth="100"/>
-                        <TableColumn fx:id="colSales" text="Satış Sayısı" prefWidth="100"/>
+                        <TableColumn fx:id="colName" text="Oyun Adı" prefWidth="250"/>
+                        <TableColumn fx:id="colPrice" text="Fiyat (TL)" prefWidth="120"/>
+                        <TableColumn fx:id="colSales" text="Satış Sayısı" prefWidth="120"/>
                         <TableColumn fx:id="colDiscount" text="İndirim %" prefWidth="100"/>
                     </columns>
                 </TableView>
+
                 <HBox spacing="10" alignment="CENTER_LEFT">
-                    <TextField fx:id="discountField" promptText="İndirim oranı (%)" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
-                    <Button text="İndirim Uygula" onAction="#handleApplyDiscount" style="-fx-background-color: #5352ed; -fx-text-fill: white;"/>
-                    <Button text="Seçiliyi Sil" onAction="#handleDeleteGame" style="-fx-background-color: #ff4c4c; -fx-text-fill: white;"/>
+                    <TextField fx:id="discountField" promptText="İndirim % (Örn: 20)" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 8; -fx-background-radius: 5;"/>
+                    <Button text="İndirim Uygula" onAction="#handleApplyDiscount" style="-fx-background-color: #5352ed; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button text="Seçiliyi Sil" onAction="#handleDeleteGame" style="-fx-background-color: #ff4c4c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15 8 15; -fx-background-radius: 5; -fx-cursor: hand;"/>
                 </HBox>
             </VBox>
         </Tab>
 
         <!-- SEKME 2: YENİ OYUN EKLE -->
-        <Tab text="Yeni Oyun Yükle">
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
-                <VBox spacing="15" maxWidth="500">
+        <Tab text="Yeni Oyun Yükle" style="-fx-background-color: #2a2a5a; -fx-text-base-color: white;">
+            <!-- ScrollPane'in alt katmanını siyaha boyadık (-fx-background) -->
+            <ScrollPane fitToWidth="true" style="-fx-background-color: #1a1a2e; -fx-background: #1a1a2e; -fx-border-color: transparent;">
+                <VBox spacing="15" maxWidth="600" style="-fx-background-color: #1a1a2e;">
                     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-                    <Label text="Oyun Adı" textFill="WHITE"/>
-                    <TextField fx:id="newNameField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+                    <Label text="Oyun Adı" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newNameField" promptText="Oyunun tam adını girin..." style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <Label text="Fiyat (TL)" textFill="WHITE"/>
-                    <TextField fx:id="newPriceField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+                    <Label text="Fiyat (TL)" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newPriceField" promptText="Örn: 499.99" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <Label text="Kategoriler (Virgülle ayırın)" textFill="WHITE"/>
-                    <TextField fx:id="newGenresField" promptText="Aksiyon, RPG, Strateji" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+                    <Label text="Kategoriler (Virgülle ayırın)" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newGenresField" promptText="Aksiyon, RPG, Strateji..." style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <Label text="Kapak Fotoğrafı URL" textFill="WHITE"/>
-                    <TextField fx:id="newCoverUrlField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+                    <Label text="Kapak Fotoğrafı URL" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextField fx:id="newCoverUrlField" promptText="https://ornek.com/resim.jpg" style="-fx-background-color: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0; -fx-padding: 10; -fx-background-radius: 5;"/>
 
-                    <Label text="Oyun Özeti" textFill="WHITE"/>
-                    <TextArea fx:id="newSummaryArea" prefHeight="100" style="-fx-control-inner-background: #2a2a5a; -fx-text-fill: white;"/>
+                    <Label text="Oyun Özeti" textFill="WHITE"><font><Font name="System Bold" size="14.0" /></font></Label>
+                    <TextArea fx:id="newSummaryArea" prefHeight="120" promptText="Oyununuzu çekici kılacak bir özet yazın..." style="-fx-control-inner-background: #2a2a5a; -fx-text-fill: white; -fx-prompt-text-fill: #a0a0b0;"/>
 
-                    <Button text="Oyunu Mağazada Yayınla" onAction="#handleAddGame" prefWidth="500"
-                            style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 15;"/>
+                    <Button text="Oyunu Mağazada Yayınla" onAction="#handleAddGame" prefWidth="600"
+                            style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 15; -fx-font-size: 16; -fx-background-radius: 8; -fx-cursor: hand;">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                    </Button>
                 </VBox>
             </ScrollPane>
         </Tab>
