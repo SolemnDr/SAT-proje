@@ -12,8 +12,8 @@ public class Main {
             util.IgdbService.seedStoreDatabase();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        */
+        }*/
+
         // 2. VERİTABANI GÜNCELLEMESİ VE KONTROLLERİ
         System.out.println("Veritabanı kontrolleri yapılıyor...");
 

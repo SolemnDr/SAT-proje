@@ -9,7 +9,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import magaza.model.Game;
 import magaza.service.GameService;
-import util.CartService; // Geçici RAM hafızası için ekledik
+import util.CartService;
+import javafx.scene.control.Button;
+import kullanici.model.User;
 
 import java.util.List;
 
@@ -23,6 +25,8 @@ public class MainController {
     private int cartItemCount = 0;
     private double cartTotalPrice = 0.0;
 
+    @FXML private Button publisherPanelButton;
+
     // Veritabanı işlemleri için GameService'i ekledik
     private final GameService gameService = new GameService();
 
@@ -30,15 +34,17 @@ public class MainController {
     public void initialize() {
         instance = this;
 
-        // UYGULAMA AÇILDIĞINDA SEPETİ VERİTABANINDAN YÜKLE (Senkronizasyon)
+        checkUserRole(); // Önce rolü kontrol et ve butonu ayarla
         loadUserCart();
 
-        // --- YENİ EKLENEN KISIM: Arayüzdeki sahte yazıyı sıfırlama ---
-        if (util.CartService.getCart().isEmpty()) {
-            resetCartUI();
-        }
+        User user = util.Session.getCurrentUser();
 
-        showStore();
+        // EĞER GELİŞTİRİCİYSE MAĞAZAYI DEĞİL, PANELİ AÇ
+        if (user != null && user.getRole() == 1) {
+            showPublisherPanel();
+        } else {
+            showStore(); // Oyuncuysa normal devam et
+        }
     }
 
     // YENİ EKLENEN METOT: Veritabanı ile Arayüzü Eşitler
@@ -69,6 +75,32 @@ public class MainController {
             System.out.println("Açılışta sepet yüklenirken hata oluştu!");
             e.printStackTrace();
         }
+    }
+
+    private void checkUserRole() {
+        User user = util.Session.getCurrentUser();
+        if (user != null) {
+            System.out.println("DEBUG: Giriş yapan kullanıcının rolü: " + user.getRole());
+        }
+
+        // Güvenlik: Eğer buton FXML'de bulunamadıysa metodu durdur, çökme olmasın
+        if (publisherPanelButton == null) {
+            System.out.println("Hata: main_layout.fxml içinde 'publisherPanelButton' bulunamadı!");
+            return;
+        }
+
+        if (user != null && user.getRole() == 1) {
+            publisherPanelButton.setVisible(true);
+            publisherPanelButton.setManaged(true);
+        } else {
+            publisherPanelButton.setVisible(false);
+            publisherPanelButton.setManaged(false);
+        }
+    }
+
+    @FXML
+    private void showPublisherPanel() {
+        loadPage("publisher_panel.fxml");
     }
 
     public void syncCartUI(int count, double total) {

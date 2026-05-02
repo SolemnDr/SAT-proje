@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox spacing="20" style="-fx-background-color: #1a1a2e;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.PublisherPanelController">
+    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+    <Label text="Yayıncı Yönetim Paneli" style="-fx-text-fill: white; -fx-font-size: 24; -fx-font-weight: bold;"/>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: #1a1a2e;">
+        <!-- SEKME 1: OYUNLARIMI YÖNET -->
+        <Tab text="Oyunlarım ve İstatistikler">
+            <VBox spacing="15">
+                <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+                <TableView fx:id="myGamesTable" VBox.vgrow="ALWAYS" style="-fx-background-color: #2a2a5a;">
+                    <columns>
+                        <TableColumn fx:id="colName" text="Oyun Adı" prefWidth="200"/>
+                        <TableColumn fx:id="colPrice" text="Fiyat (TL)" prefWidth="100"/>
+                        <TableColumn fx:id="colSales" text="Satış Sayısı" prefWidth="100"/>
+                        <TableColumn fx:id="colDiscount" text="İndirim %" prefWidth="100"/>
+                    </columns>
+                </TableView>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <TextField fx:id="discountField" promptText="İndirim oranı (%)" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+                    <Button text="İndirim Uygula" onAction="#handleApplyDiscount" style="-fx-background-color: #5352ed; -fx-text-fill: white;"/>
+                    <Button text="Seçiliyi Sil" onAction="#handleDeleteGame" style="-fx-background-color: #ff4c4c; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- SEKME 2: YENİ OYUN EKLE -->
+        <Tab text="Yeni Oyun Yükle">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                <VBox spacing="15" maxWidth="500">
+                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+                    <Label text="Oyun Adı" textFill="WHITE"/>
+                    <TextField fx:id="newNameField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+
+                    <Label text="Fiyat (TL)" textFill="WHITE"/>
+                    <TextField fx:id="newPriceField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+
+                    <Label text="Kategoriler (Virgülle ayırın)" textFill="WHITE"/>
+                    <TextField fx:id="newGenresField" promptText="Aksiyon, RPG, Strateji" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+
+                    <Label text="Kapak Fotoğrafı URL" textFill="WHITE"/>
+                    <TextField fx:id="newCoverUrlField" style="-fx-background-color: #2a2a5a; -fx-text-fill: white;"/>
+
+                    <Label text="Oyun Özeti" textFill="WHITE"/>
+                    <TextArea fx:id="newSummaryArea" prefHeight="100" style="-fx-control-inner-background: #2a2a5a; -fx-text-fill: white;"/>
+
+                    <Button text="Oyunu Mağazada Yayınla" onAction="#handleAddGame" prefWidth="500"
+                            style="-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 15;"/>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+    </TabPane>
+</VBox>

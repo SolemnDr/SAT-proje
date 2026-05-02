@@ -6,18 +6,19 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import kullanici.service.AuthService;
+import util.Session;
 
 public class RegisterController {
 
     @FXML private TextField usernameField;
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
-    // roleComboBox TAMAMEN SİLİNDİ
     @FXML private Label errorLabel;
 
-    private final AuthService authService = new AuthService();
+    // İŞTE EKSİK OLAN VE KIRMIZI YANAN KISIM BURASIYDI:
+    @FXML private CheckBox publisherCheckBox;
 
-    // initialize metodu sadece ComboBox'u dolduruyordu, artık ona da gerek kalmadığı için silindi.
+    private final AuthService authService = new AuthService();
 
     @FXML
     private void handleRegister() {
@@ -30,13 +31,18 @@ public class RegisterController {
             return;
         }
 
-        AuthService.AuthResult result = authService.register(username, email, password);
+        // CheckBox işaretli ise 1, değilse 0 değerini alıyoruz
+        int role = publisherCheckBox.isSelected() ? 1 : 0;
+        System.out.println("DEBUG: Kayıt isteği gönderiliyor. Seçilen Rol: " + role);
+
+        // Tek bir kayıt çağrısı yeterli:
+        AuthService.AuthResult result = authService.register(username, email, password, role);
 
         switch (result) {
-            case SUCCESS -> goToLogin(); // kayıt başarılı, login'e dön
+            case SUCCESS -> goToLogin();
             case USERNAME_TAKEN -> errorLabel.setText("Bu kullanıcı adı zaten alınmış.");
             case EMAIL_TAKEN    -> errorLabel.setText("Bu e-posta zaten kayıtlı.");
-            case WEAK_PASSWORD  -> errorLabel.setText("Şifreniz en az 6 karakter olmalıdır."); // Servisindeki bu güzel kontrolü de arayüze yansıttım
+            case WEAK_PASSWORD  -> errorLabel.setText("Şifreniz en az 6 karakter olmalıdır.");
             default             -> errorLabel.setText("Bir hata oluştu.");
         }
     }
@@ -48,9 +54,7 @@ public class RegisterController {
 
     private void goToLogin() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("login.fxml")
-            );
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));
         } catch (Exception e) {

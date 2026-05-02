@@ -16,14 +16,25 @@ public class UserDAO {
         }
     }
 
+    public void upgradeTableForRoles() {
+        // Kullanıcının rolünü tutan sütun (0 = Oyuncu, 1 = Geliştirici)
+        String sql = "ALTER TABLE users ADD COLUMN role INTEGER DEFAULT 0";
+        try (Statement stmt = DBConnection.get().createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException ignored) {}
+    }
+
     public void save(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, email, passwordHash, avatarPath) VALUES (?,?,?,?)";
-        PreparedStatement ps = DBConnection.get().prepareStatement(sql);
-        ps.setString(1, user.getUsername());
-        ps.setString(2, user.getEmail());
-        ps.setString(3, user.getPasswordHash());
-        ps.setString(4, user.getAvatarPath());
-        ps.executeUpdate();
+        // Sorguda 5 tane soru işareti olmalı ve 'role' sütunu eklenmiş olmalı
+        String sql = "INSERT INTO users (username, email, passwordHash, avatarPath, role) VALUES (?,?,?,?,?)";
+        try (PreparedStatement ps = DBConnection.get().prepareStatement(sql)) {
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPasswordHash());
+            ps.setString(4, user.getAvatarPath());
+            ps.setInt(5, user.getRole()); // 5. parametre rol olmalı
+            ps.executeUpdate();
+        }
     }
 
     public boolean isUserExists(String username, String email) {
@@ -54,6 +65,8 @@ public class UserDAO {
             u.setEmail(rs.getString("email"));
             u.setPasswordHash(rs.getString("passwordHash"));
             u.setAvatarPath(rs.getString("avatarPath"));
+            u.setRole(rs.getInt("role"));
+
             return Optional.of(u);
         }
         return Optional.empty();

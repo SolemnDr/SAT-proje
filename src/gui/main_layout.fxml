@@ -27,7 +27,12 @@
             <Button maxWidth="Infinity" onAction="#showStore" styleClass="btn-primary" text="Mağaza" />
             <Button maxWidth="Infinity" onAction="#showLibrary" styleClass="btn-secondary" text="Kütüphanem" />
             <Button maxWidth="Infinity" onAction="#showSocial" styleClass="btn-secondary" text="Arkadaşlar" />
-
+            <Button fx:id="publisherPanelButton"
+                    text="Yayıncı Paneli"
+                    onAction="#showPublisherPanel"
+                    visible="false"
+                    managed="false"
+                    style="-fx-background-color: #5352ed; -fx-text-fill: white;" />
             <VBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
                 <Button maxWidth="Infinity" onAction="#handleLogout" styleClass="error-label" style="-fx-background-color: transparent; -fx-border-color: #ff6060; -fx-border-radius: 8;" text="Çıkış Yap" />
             </VBox>
