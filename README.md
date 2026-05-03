@@ -18,13 +18,13 @@ Uygulamanın çalışabilmesi için lib klasöründe bulunan tüm .jar dosyalar�
 5. Güvenlik (Encryption): jbcrypt-0.4.jar kütüphanesi, kullanıcı şifrelerinin veritabanında güvenli bir şekilde hashlenerek saklanması amacıyla kullanılmaktadır.
 6. Loglama ve Yardımcı Araçlar: slf4j ve commons-logging kütüphaneleri sistem loglarının takibi; commons-codec ise veri şifreleme/çözme işlemleri için dahil edilmiştir.
 ---
-## 3. Veri Tabanı Bağlantısı (Database Connection)
+## 3. Veri Tabanı Bağlantısı
 Kılavuzda belirtilen veri tabanı bağlantı detayları şu şekildedir:
 1. Bağlantı Türü: JDBC (Java Database Connectivity) üzerinden SQLite sürücüsü ile yerel bağlantı kurulmaktadır.
 2. Bağlantı Yolu (URL): jdbc:sqlite:gamestore.db.
 3. Dosya Konumu: Veritabanı dosyası (gamestore.db), uygulamanın çalıştığı kök dizinde yer almalıdır.
 ---
-## 4. Ortam Değişkenleri (Environment Variables)
+## 4. Ortam Değişkenleri
 Uygulamanın hatasız çalışması için sistemde şu ortam değişkenlerinin tanımlı olması önerilir:
 1. Java SDK: Uygulama Java 19 ve üzeri sürüm ile uyumludur.
 2. JAVA_HOME: JDK kurulum dizini sistem değişkenlerine eklenmiş olmalıdır.
