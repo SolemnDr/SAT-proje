@@ -4,20 +4,26 @@ import javafx.application.Application;
 public class Main {
     public static void main(String[] args) {
 
-        // 1. VERİTABANI ARTIK 989 OYUNLA DOLU!
-        // Her çalıştırdığımızda tekrar indirmesin diye burayı kapattık.
-        // Eğer veritabanı silinirse bu yorum satırlarını açıp bir kere çalıştırman yeterli.
+        // --- 1. İLK KURULUM: VERİTABANINI OYUNLARLA DOLDURMA ---
+        // DİKKAT: Projeyi sıfırdan ilk kez ayağa kaldırıyorsanız aşağıdaki bloktaki
+        // yorum satırlarını (/* ve */) kaldırıp 1 defaya mahsus çalıştırın.
+        // API'den veriler çekildikten sonra tekrar yoruma alabilirsiniz.
 
-        /*try {
+        /*
+        try {
+            System.out.println("Kurulum: IGDB API üzerinden oyun verileri çekiliyor. Lütfen bekleyin...");
             util.IgdbService.seedStoreDatabase();
+            System.out.println("Kurulum Başarılı: Oyunlar veritabanına işlendi!");
         } catch (Exception e) {
+            System.out.println("Hata: Oyunlar çekilirken bir sorun oluştu!");
             e.printStackTrace();
         }*/
 
-        // 2. VERİTABANI GÜNCELLEMESİ VE KONTROLLERİ
-        System.out.println("Veritabanı kontrolleri yapılıyor...");
 
-        // Rol (Oyuncu/Yayıncı) sütunu kontrolü - Avatar yerine bunu ekledik
+        // --- 2. VERİTABANI MİMARİSİ VE TABLO KONTROLLERİ ---
+        System.out.println("Sistem: Veritabanı tabloları ve mimari güncellemeler kontrol ediliyor...");
+
+        // Rol (Oyuncu/Yayıncı) sütunu kontrolü
         kullanici.dao.UserDAO userDAO = new kullanici.dao.UserDAO();
         userDAO.upgradeTableForRoles();
 
@@ -25,12 +31,12 @@ public class Main {
         magaza.dao.ReviewDAO reviewDAO = new magaza.dao.ReviewDAO();
         reviewDAO.createTableIfNotExists();
 
+        // İndirim motoru (Discount) sütunu kontrolü
         magaza.dao.GameDAO gameDAO = new magaza.dao.GameDAO();
         gameDAO.upgradeTableForDiscounts();
 
-        // 3. JAVAFX ARAYÜZÜNÜ BAŞLATAN TRUVA ATI KODU
-        // Arayüzü doğrudan değil, bu sınıf üzerinden dolaylı yoldan başlatıyoruz
-        System.out.println("GameStore Arayüzü Başlatılıyor...");
+        // --- 3. JAVAFX ARAYÜZÜNÜ BAŞLATMA ---
+        System.out.println("GameStore: Arayüz başlatılıyor...");
         Application.launch(MainApp.class, args);
     }
 }
