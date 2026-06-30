@@ -14,8 +14,8 @@ import java.util.Random; // HATA 1 ÇÖZÜLDÜ: Random eklendi
 
 public class IgdbService {
 
-    private static final String CLIENT_ID = "zg39h2jpof98mj4t1ss5anv982z1s2";
-    private static final String CLIENT_SECRET = "dtnjw5mepam5jywvucoj8ibbj15nrn";
+    private static final String CLIENT_ID = "";            //ID
+    private static final String CLIENT_SECRET = "";        //SECRET
     private static String accessToken = null;
 
     private static void getAccessToken() throws Exception {
